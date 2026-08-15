@@ -11,6 +11,8 @@
     projectTitle: '绝区零海报作品',
     canvasWidth: 1920,
     canvasHeight: 1080,
+    padX: 864,
+    padY: 486,
     currentPresetName: '16:9 标准横版',
     zoom: 1,
     showRulers: true,
@@ -69,6 +71,7 @@
     activeTab: 'tab-stickers',
     activePropTab: 'properties',
     activeCategory: 'all',
+    lockAspectRatio: true,
     customUploads: [],
     exportSettings: {
       format: 'image/png',
@@ -212,6 +215,7 @@
       // Properties Inputs
       propWidth: document.getElementById('prop-width'),
       propHeight: document.getElementById('prop-height'),
+      btnLockAspectRatio: document.getElementById('btn-lock-aspect-ratio'),
       propRotation: document.getElementById('prop-rotation'),
       propOpacity: document.getElementById('prop-opacity'),
       inspectorTextSection: document.getElementById('inspector-text-section'),
@@ -247,10 +251,24 @@
       propShapeStroke: document.getElementById('prop-shape-stroke'),
       propShapeStrokeWidth: document.getElementById('prop-shape-stroke-width'),
       propShapeRadius: document.getElementById('prop-shape-radius'),
+      btnPropBringFront: document.getElementById('btn-prop-bring-front'),
+      btnPropSendBack: document.getElementById('btn-prop-send-back'),
       btnPropDuplicate: document.getElementById('btn-prop-duplicate'),
       btnPropDelete: document.getElementById('btn-prop-delete'),
       btnLayerUp: document.getElementById('btn-layer-up'),
       btnLayerDown: document.getElementById('btn-layer-down'),
+      btnLockAllLayers: document.getElementById('btn-lock-all-layers'),
+      iconLockAll: document.getElementById('icon-lock-all'),
+      labelLockAll: document.getElementById('label-lock-all'),
+
+      // Canvas Top Contextual Action Bar
+      canvasTopContextBar: document.getElementById('canvas-top-context-bar'),
+      contextBarType: document.getElementById('context-bar-type'),
+      contextBarName: document.getElementById('context-bar-name'),
+      ctxBtnTop: document.getElementById('ctx-btn-top'),
+      ctxBtnBottom: document.getElementById('ctx-btn-bottom'),
+      ctxBtnDup: document.getElementById('ctx-btn-dup'),
+      ctxBtnDel: document.getElementById('ctx-btn-del'),
 
       // Modals
       modalSizePresets: document.getElementById('modal-size-presets'),
@@ -271,7 +289,9 @@
       btnDoDownload: document.getElementById('btn-do-download'),
       btnSaveProject: document.getElementById('btn-save-project'),
       btnLoadProjectTrigger: document.getElementById('btn-load-project-trigger'),
-      fileLoadProject: document.getElementById('file-load-project')
+      fileLoadProject: document.getElementById('file-load-project'),
+      btnOpenAboutModal: document.getElementById('btn-open-about-modal'),
+      modalAbout: document.getElementById('modal-about')
     };
   }
 
@@ -322,6 +342,7 @@
   async function init() {
     cacheDOMElements();
     ensureBackgroundState();
+    updateAspectRatioLockUI();
     bindEvents();
     bindShortcuts();
 
@@ -341,12 +362,6 @@
       initTemplates();
     } catch (e) {
       console.error('[Templates] Init error:', e);
-    }
-
-    try {
-      initBackgroundPresets();
-    } catch (e) {
-      console.error('[Backgrounds] Init error:', e);
     }
 
     // Try to restore user auto-save draft first!
@@ -410,42 +425,51 @@
   // Stickers Catalog & Tabs (Tag Cloud & Search)
   // =========================================================================
   function initStickerLibrary() {
-    if (!window.ZZZ_EMOJIS || !window.ZZZ_CATEGORIES) {
-      console.warn('Emoji data not found.');
+    if (!window.ZZZ_EMOJIS || window.ZZZ_EMOJIS.length === 0) {
+      console.warn('[Stickers] No emoji data found in window.ZZZ_EMOJIS');
       return;
     }
 
     const catCounts = {};
     window.ZZZ_EMOJIS.forEach(item => {
-      catCounts[item.category] = (catCounts[item.category] || 0) + 1;
+      if (item.category) {
+        catCounts[item.category] = (catCounts[item.category] || 0) + 1;
+      }
     });
 
-    const cats = ['all', ...window.ZZZ_CATEGORIES];
-    dom.stickerCategoryList.innerHTML = cats.map(cat => {
-      const count = cat === 'all' ? window.ZZZ_EMOJIS.length : (catCounts[cat] || 0);
-      let label = cat === 'all' ? '全部表情' : cat.replace(/\(.*?\)/g, '').trim();
-      return `<button class="category-pill ${cat === 'all' ? 'active' : ''}" data-cat="${cat}">${label} <span style="opacity:0.7; font-size:10px;">(${count})</span></button>`;
-    }).join('');
+    const categories = window.ZZZ_CATEGORIES || Object.keys(catCounts);
+    const cats = ['all', ...categories];
+
+    if (dom.stickerCategoryList) {
+      dom.stickerCategoryList.innerHTML = cats.map(cat => {
+        const count = cat === 'all' ? window.ZZZ_EMOJIS.length : (catCounts[cat] || 0);
+        const label = cat === 'all' ? '全部' : cat;
+        return `<button class="category-pill ${cat === 'all' ? 'active' : ''}" data-cat="${cat}">${label} <span style="opacity:0.7; font-size:10px;">(${count})</span></button>`;
+      }).join('');
+
+      dom.stickerCategoryList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.category-pill');
+        if (!btn) return;
+        dom.stickerCategoryList.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.activeCategory = btn.dataset.cat;
+        renderStickers();
+      });
+    }
 
     renderStickers();
 
-    dom.stickerCategoryList.addEventListener('click', (e) => {
-      const btn = e.target.closest('.category-pill');
-      if (!btn) return;
-      dom.stickerCategoryList.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.activeCategory = btn.dataset.cat;
-      renderStickers();
-    });
-
-    dom.inputStickerSearch.addEventListener('input', () => {
-      renderStickers();
-    });
+    if (dom.inputStickerSearch) {
+      dom.inputStickerSearch.addEventListener('input', () => {
+        renderStickers();
+      });
+    }
   }
 
   function renderStickers() {
+    if (!dom.stickerGridContainer) return;
     const query = (dom.inputStickerSearch ? dom.inputStickerSearch.value : '').trim().toLowerCase();
-    const activeCat = state.activeCategory;
+    const activeCat = state.activeCategory || 'all';
 
     const filtered = (window.ZZZ_EMOJIS || []).filter(item => {
       const matchesCat = (activeCat === 'all' || item.category === activeCat);
@@ -453,6 +477,11 @@
       if (!query) return true;
       return (item.tags && item.tags.some(tag => tag.includes(query))) || (item.name && item.name.toLowerCase().includes(query));
     });
+
+    if (filtered.length === 0) {
+      dom.stickerGridContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px 0;">未找到相关表情贴图</div>';
+      return;
+    }
 
     dom.stickerGridContainer.innerHTML = filtered.map(item => `
       <div class="sticker-item" data-src="${item.path}" title="${item.name}" draggable="true">
@@ -483,7 +512,7 @@
       <div class="text-preset-card template-card" data-idx="${idx}">
         <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${tmpl.name}</div>
         <div style="font-size: 11px; color: var(--accent-primary); font-weight: 500;">${tmpl.category} · ${tmpl.width} × ${tmpl.height}</div>
-        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">包含 ${tmpl.layers.length} 个预设图层与主题配色</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">包含 ${tmpl.layers.length} 个预设贴画与主题配色</div>
       </div>
     `).join('');
 
@@ -495,34 +524,6 @@
         }
         applyTemplate(window.ZZZ_TEMPLATES[idx]);
         showToast(`已载入模版: ${window.ZZZ_TEMPLATES[idx].name}`, 'info');
-      });
-    });
-  }
-
-  function initBackgroundPresets() {
-    const grid = document.getElementById('bg-preset-grid');
-    if (!grid || !window.ZZZ_BACKGROUNDS) return;
-
-    grid.innerHTML = window.ZZZ_BACKGROUNDS.map((bg) => `
-      <div class="sticker-item" data-bg-src="${bg.path}" title="${bg.name}" style="aspect-ratio: 16/9; padding: 2px;">
-        <img src="${bg.path}" alt="${bg.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" loading="lazy">
-      </div>
-    `).join('');
-
-    grid.querySelectorAll('[data-bg-src]').forEach(el => {
-      el.addEventListener('click', async () => {
-        const src = el.dataset.bgSrc;
-        const img = await preloadImage(src);
-        if (img) {
-          state.background.image = img;
-          state.background.imageSrc = src;
-          state.background.type = 'image';
-          state.background.imageFit = 'cover';
-          dom.bgTypeImage.click();
-          recordHistory();
-          renderCanvas();
-          showToast(`已设置背景: ${el.title}`, 'success');
-        }
       });
     });
   }
@@ -567,15 +568,18 @@
     state.canvasHeight = h;
     if (name) state.currentPresetName = name;
 
-    dom.mainCanvas.width = w;
-    dom.mainCanvas.height = h;
+    state.padX = Math.round(w * 0.45);
+    state.padY = Math.round(h * 0.45);
+
+    dom.mainCanvas.width = w + state.padX * 2;
+    dom.mainCanvas.height = h + state.padY * 2;
 
     dom.labelCurrentSize.textContent = state.currentPresetName;
     dom.labelCurrentDims.textContent = `${w} × ${h}`;
 
     updateExportResLabel();
-    renderCanvas();
     autoFitCanvas();
+    renderCanvas();
     renderRulers();
     renderAlignmentMask();
   }
@@ -600,9 +604,20 @@
       dom.labelZoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
     }
 
+    const padX = state.padX || Math.round(state.canvasWidth * 0.45);
+    const padY = state.padY || Math.round(state.canvasHeight * 0.45);
+
     if (dom.artboardWrapper) {
       dom.artboardWrapper.style.width = `${state.canvasWidth * state.zoom}px`;
       dom.artboardWrapper.style.height = `${state.canvasHeight * state.zoom}px`;
+    }
+
+    if (dom.mainCanvas) {
+      dom.mainCanvas.style.position = 'absolute';
+      dom.mainCanvas.style.left = `${-padX * state.zoom}px`;
+      dom.mainCanvas.style.top = `${-padY * state.zoom}px`;
+      dom.mainCanvas.style.width = `${(state.canvasWidth + padX * 2) * state.zoom}px`;
+      dom.mainCanvas.style.height = `${(state.canvasHeight + padY * 2) * state.zoom}px`;
     }
 
     renderCanvas();
@@ -748,7 +763,7 @@
       const y1 = h * (1 / 3);
       const y2 = h * (2 / 3);
 
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.75)';
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
       ctx.lineWidth = 2;
       ctx.setLineDash([8, 6]);
 
@@ -760,7 +775,7 @@
       ctx.moveTo(0, y2); ctx.lineTo(w, y2);
       ctx.stroke();
 
-      // 4 Golden Focal Dots (rendered at absolute bottom, beneath all foreground layers!)
+      // 4 Golden Focal Dots
       ctx.setLineDash([]);
       const focalPoints = [
         { x: x1, y: y1 },
@@ -772,7 +787,7 @@
       for (const pt of focalPoints) {
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.85)';
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
         ctx.fill();
 
         ctx.beginPath();
@@ -784,7 +799,7 @@
       const cx = w / 2;
       const cy = h / 2;
 
-      ctx.strokeStyle = 'rgba(244, 63, 94, 0.85)';
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.95)';
       ctx.lineWidth = 2;
       ctx.setLineDash([10, 6]);
 
@@ -795,7 +810,7 @@
       ctx.stroke();
 
       // Diagonal Lines
-      ctx.strokeStyle = 'rgba(236, 72, 153, 0.35)';
+      ctx.strokeStyle = 'rgba(236, 72, 153, 0.55)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 8]);
       ctx.beginPath();
@@ -805,15 +820,15 @@
 
       // Center Reticle
       ctx.setLineDash([]);
-      ctx.strokeStyle = 'rgba(244, 63, 94, 0.85)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.95)';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.arc(cx, cy, 32, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#f43f5e';
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff0055';
       ctx.fill();
     } else if (mask === 'safe-area') {
       const aMarginX = w * 0.05;
@@ -827,28 +842,28 @@
       const tH = h * 0.8;
 
       // 90% Action Safe
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.85)';
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.95)';
       ctx.lineWidth = 2.5;
       ctx.setLineDash([10, 6]);
       ctx.strokeRect(aMarginX, aMarginY, aW, aH);
 
-      ctx.fillStyle = 'rgba(6, 182, 212, 0.9)';
+      ctx.fillStyle = '#06b6d4';
       ctx.font = 'bold 20px system-ui, sans-serif';
-      ctx.fillText('🛡️ 90% 画面安全区 (Action Safe)', aMarginX + 16, aMarginY + 28);
+      ctx.fillText('90% 画面安全区 (Action Safe)', aMarginX + 16, aMarginY + 28);
 
       // 80% Title Safe
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.9)';
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
       ctx.lineWidth = 2.5;
       ctx.setLineDash([8, 5]);
       ctx.strokeRect(tMarginX, tMarginY, tW, tH);
 
-      ctx.fillStyle = 'rgba(234, 179, 8, 0.95)';
-      ctx.fillText('🎯 80% 文字/标题安全区 (Title Safe)', tMarginX + 16, tMarginY + 28);
+      ctx.fillStyle = '#facc15';
+      ctx.fillText('80% 文字/标题安全区 (Title Safe)', tMarginX + 16, tMarginY + 28);
     } else if (mask === 'grid') {
       const gridSize = 50;
       for (let x = gridSize; x < w; x += gridSize) {
         const isMajor = x % (gridSize * 4) === 0;
-        ctx.strokeStyle = isMajor ? 'rgba(79, 70, 229, 0.5)' : 'rgba(148, 163, 184, 0.25)';
+        ctx.strokeStyle = isMajor ? 'rgba(99, 102, 241, 0.7)' : 'rgba(148, 163, 184, 0.45)';
         ctx.lineWidth = isMajor ? 1.5 : 0.8;
         ctx.setLineDash(isMajor ? [] : [3, 4]);
         ctx.beginPath();
@@ -857,7 +872,7 @@
       }
       for (let y = gridSize; y < h; y += gridSize) {
         const isMajor = y % (gridSize * 4) === 0;
-        ctx.strokeStyle = isMajor ? 'rgba(79, 70, 229, 0.5)' : 'rgba(148, 163, 184, 0.25)';
+        ctx.strokeStyle = isMajor ? 'rgba(99, 102, 241, 0.7)' : 'rgba(148, 163, 184, 0.45)';
         ctx.lineWidth = isMajor ? 1.5 : 0.8;
         ctx.setLineDash(isMajor ? [] : [3, 4]);
         ctx.beginPath();
@@ -870,7 +885,7 @@
       const gy1 = h * 0.382;
       const gy2 = h * 0.618;
 
-      ctx.strokeStyle = 'rgba(236, 72, 153, 0.8)';
+      ctx.strokeStyle = 'rgba(244, 114, 182, 0.95)';
       ctx.lineWidth = 2;
       ctx.setLineDash([10, 6]);
 
@@ -882,7 +897,7 @@
       ctx.stroke();
 
       // Diagonals
-      ctx.strokeStyle = 'rgba(139, 92, 246, 0.45)';
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.65)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 6]);
       ctx.beginPath();
@@ -892,7 +907,7 @@
 
       // Golden Dots
       ctx.setLineDash([]);
-      ctx.fillStyle = '#ec4899';
+      ctx.fillStyle = '#f472b6';
       const pts = [
         { x: gx1, y: gy1 },
         { x: gx2, y: gy1 },
@@ -983,7 +998,7 @@
     updateLayersUI();
     updateInspectorUI();
     if (state.selectedLayerIds.length > 0) {
-      showToast(`已全选 ${state.selectedLayerIds.length} 个图层`, 'info');
+      showToast(`已全选 ${state.selectedLayerIds.length} 个贴画`, 'info');
     }
   }
 
@@ -1130,9 +1145,10 @@
   }
 
   function addTextLayer(presetType = 'normal', posX, posY) {
-    let text = '点击编辑文本';
-    let fontSize = 48;
+    let text = '「 世界全剧终，欢迎来到新艾利都 」';
+    let fontSize = 54;
     let fontWeight = 'bold';
+    let fontStyle = 'normal';
     let fillColor = '#0f172a';
     let strokeColor = '#000000';
     let strokeWidth = 0;
@@ -1148,46 +1164,49 @@
     let align = 'center';
 
     if (presetType === 'comic-pop') {
-      text = 'CUNNING HARES\nEVERYDAY LIFE';
-      fontSize = 72;
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
+      fontSize = 54;
       fontWeight = '900';
       fillColor = '#ffffff';
       strokeColor = '#000000';
-      strokeWidth = 8;
+      strokeWidth = 6;
       shadowType = 'halftone';
       shadowColor = '#334155';
       shadowOffset = 8;
       halftoneType = 'dots';
       halftoneSpacing = 6;
       halftoneSize = 2.2;
+    } else if (presetType === 'neon') {
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
+      fontSize = 52;
+      fontWeight = '900';
+      fillColor = '#ffffff';
+      strokeColor = '#0284c7';
+      strokeWidth = 2;
+      shadowType = 'glow';
+      shadowColor = '#38bdf8';
+      shadowBlur = 24;
     } else if (presetType === 'main-title') {
-      text = '绝区零海报大标题';
-      fontSize = 84;
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
+      fontSize = 64;
       fontWeight = '900';
       fillColor = '#0f172a';
     } else if (presetType === 'subtitle') {
-      text = '探索新艾利都的精彩冒险';
-      fontSize = 42;
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
+      fontSize = 38;
       fontWeight = '600';
       fillColor = '#475569';
     } else if (presetType === 'badge') {
-      text = '✨ 元气特别企划';
-      fontSize = 32;
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
+      fontSize = 30;
       fontWeight = 'bold';
       fillColor = '#e11d48';
       bgFill = '#ffe4e6';
-      bgRadius = 16;
-    } else if (presetType === 'neon') {
-      text = '⚡ 赛博发光字';
-      fontSize = 64;
-      fontWeight = '900';
-      fillColor = '#ffffff';
-      shadowType = 'glow';
-      shadowColor = '#38bdf8';
-      shadowBlur = 20;
+      bgRadius = 9999;
     } else if (presetType === 'quote') {
-      text = '「 羁绊与守护，永不褪色 」';
+      text = '「 世界全剧终，欢迎来到新艾利都 」';
       fontSize = 36;
+      fontStyle = 'italic';
       fontWeight = '500';
       fillColor = '#334155';
     }
@@ -1270,7 +1289,7 @@
     renderCanvas();
     updateLayersUI();
     updateInspectorUI();
-    showToast('形状图层已添加', 'info');
+    showToast('装饰图形已添加', 'info');
   }
 
   // Halftone Pattern Generator Cache for Pop-Art / Screentone Dots
@@ -1308,31 +1327,118 @@
     return pCanvas;
   }
 
+  // Bleed Hazard Stripe Pattern Cache for High-Performance Shading
+  let cachedBleedStripePattern = null;
+
+  function getBleedHazardPattern() {
+    if (cachedBleedStripePattern) return cachedBleedStripePattern;
+
+    const pCanvas = document.createElement('canvas');
+    const size = 16;
+    pCanvas.width = size;
+    pCanvas.height = size;
+    const pCtx = pCanvas.getContext('2d');
+
+    pCtx.strokeStyle = 'rgba(0, 0, 0, 0.48)';
+    pCtx.lineWidth = 4;
+    pCtx.beginPath();
+    pCtx.moveTo(0, 0); pCtx.lineTo(size, size);
+    pCtx.moveTo(-size / 2, size / 2); pCtx.lineTo(size / 2, size * 1.5);
+    pCtx.moveTo(size / 2, -size / 2); pCtx.lineTo(size * 1.5, size / 2);
+    pCtx.stroke();
+
+    cachedBleedStripePattern = pCanvas;
+    return cachedBleedStripePattern;
+  }
+
   // =========================================================================
-  // Canvas Rendering Pipeline (Background + Alignment Mask + Layers)
+  // Canvas Rendering Pipeline (Background + Alignment Mask + Layers + Overflow Bleed Mask)
   // =========================================================================
   function renderCanvas() {
     if (!dom.ctx) return;
     const ctx = dom.ctx;
     const w = state.canvasWidth;
     const h = state.canvasHeight;
+    const padX = state.padX !== undefined ? state.padX : Math.round(w * 0.45);
+    const padY = state.padY !== undefined ? state.padY : Math.round(h * 0.45);
 
-    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    // Clear the full extended canvas (including overflow margins)
+    ctx.clearRect(0, 0, w + padX * 2, h + padY * 2);
 
-    // 1. Draw Background (Color, Gradient, or Image)
+    // Translate so (0, 0) corresponds to the Artboard top-left
+    ctx.translate(padX, padY);
+
+    // 1. Draw Artboard drop shadow and base container
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 12;
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+
+    // 2. Clip & Draw Artboard Background within artboard bounds
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
     drawBackground(ctx, w, h);
+    ctx.restore();
 
-    // 2. Draw Alignment Mask & Grid Points (Placed at absolute bottom, right above background and beneath all foreground layers!)
-    drawAlignmentMaskOnCanvas(ctx, w, h);
-
-    // 3. Draw Layers in order (Stickers, Texts, Shapes are drawn cleanly on TOP of the grid!)
+    // 3. Draw All Layers in order (Stickers, Texts, Shapes)
+    // Layers can freely render across the artboard and overflow into margins!
     for (const layer of state.layers) {
       if (!layer.visible) continue;
       drawLayer(ctx, layer);
     }
 
-    // 4. Update selection overlay & handles
+    // 4. Draw Alignment Masks & Safe Areas ON TOP of all element layers
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+    drawAlignmentMaskOnCanvas(ctx, w, h);
+    ctx.restore();
+
+    // 5. Draw ZZZ Diagonal Hazard Stripe Bleed Mask on the Overflow Area
+    drawOverflowBleedMask(ctx, w, h, padX, padY);
+
+    ctx.restore();
+
+    // 6. Update selection overlay & handles
     updateSelectionOverlay();
+  }
+
+  function drawOverflowBleedMask(ctx, w, h, padX, padY) {
+    ctx.save();
+    // 1. Cutout clip: Outer extended bounds MINUS inner Artboard rectangle
+    ctx.beginPath();
+    ctx.rect(-padX, -padY, w + padX * 2, h + padY * 2);
+    ctx.rect(0, 0, w, h);
+    ctx.clip('evenodd');
+
+    // 2. Only paint on top of existing non-transparent layer pixels!
+    ctx.globalCompositeOperation = 'source-atop';
+
+    // 2.1 Translucent dark tint covering only the overflowing element pixels
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+    ctx.fillRect(-padX, -padY, w + padX * 2, h + padY * 2);
+
+    // 2.2 Instant GPU-accelerated pattern fill for 135° diagonal hazard stripes
+    const patternTile = getBleedHazardPattern();
+    const pattern = ctx.createPattern(patternTile, 'repeat');
+    ctx.fillStyle = pattern;
+    ctx.fillRect(-padX, -padY, w + padX * 2, h + padY * 2);
+
+    ctx.restore();
+
+    // 3. Crisp boundary border around the exact rendered Artboard
+    ctx.save();
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(0, 0, w, h);
+    ctx.restore();
   }
 
   function ensureBackgroundState() {
@@ -1386,11 +1492,11 @@
   }
 
   function drawPopDotsBackground(ctx, w, h, opts) {
-    const bgColor = opts.bgColor || '#fbbf24';
-    const dotColor = opts.dotColor || '#18181b';
-    const radius = opts.dotRadius !== undefined ? opts.dotRadius : 10;
-    const spacing = opts.dotSpacing || 36;
-    const pattern = opts.pattern || 'staggered';
+    const bgColor = opts.bgColor || '#ffffff';
+    const dotColor = opts.dotColor || '#0f172a';
+    const radius = opts.dotRadius !== undefined ? opts.dotRadius : 3;
+    const spacing = opts.dotSpacing || 10;
+    const pattern = opts.pattern || 'micro';
     const opacity = opts.opacity !== undefined ? opts.opacity : 0.95;
 
     ctx.fillStyle = bgColor;
@@ -1400,7 +1506,7 @@
     ctx.globalAlpha = opacity;
     ctx.fillStyle = dotColor;
 
-    if (pattern === 'staggered') {
+    if (pattern === 'staggered' || pattern === 'micro') {
       let rowIndex = 0;
       for (let y = -radius; y <= h + radius; y += spacing * 0.866) {
         const xOffset = (rowIndex % 2 === 1) ? (spacing / 2) : 0;
@@ -1423,25 +1529,28 @@
       const cx = w / 2;
       const cy = h / 2;
       const maxR = Math.hypot(w, h) / 2;
-      for (let y = 0; y <= h; y += spacing) {
-        for (let x = 0; x <= w; x += spacing) {
+      for (let y = 0; y <= h + spacing; y += spacing) {
+        for (let x = 0; x <= w + spacing; x += spacing) {
           const dist = Math.hypot(x - cx, y - cy);
           const factor = (dist / maxR);
-          const r = Math.max(1, radius * (0.3 + factor * 1.4));
+          const r = Math.max(0.8, radius * (0.2 + factor * 1.5));
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
           ctx.fill();
         }
       }
-    } else if (pattern === 'micro') {
-      const microPitch = Math.max(6, Math.round(spacing / 3));
-      const microR = Math.max(1, radius / 3);
-      for (let y = 0; y <= h; y += microPitch) {
-        for (let x = 0; x <= w; x += microPitch) {
+    } else if (pattern === 'gradient-v' || pattern === 'shadow') {
+      let rowIndex = 0;
+      for (let y = 0; y <= h + spacing; y += spacing * 0.866) {
+        const factor = y / h; // 0 to 1
+        const r = Math.max(0.6, radius * (0.15 + factor * 1.6));
+        const xOffset = (rowIndex % 2 === 1) ? (spacing / 2) : 0;
+        for (let x = -radius + xOffset; x <= w + radius; x += spacing) {
           ctx.beginPath();
-          ctx.arc(x, y, microR, 0, Math.PI * 2);
+          ctx.arc(x, y, r, 0, Math.PI * 2);
           ctx.fill();
         }
+        rowIndex++;
       }
     }
     ctx.restore();
@@ -1587,11 +1696,11 @@
       const stripeW = 40;
       ctx.fillStyle = dec.color || '#eab308';
       ctx.beginPath();
-      for (let x = -h; x < w + h; x += stripeW * 2) {
+      for (let x = -h - stripeW * 2; x < w + h + stripeW * 2; x += stripeW * 2) {
         ctx.moveTo(x, 0);
         ctx.lineTo(x + stripeW, 0);
-        ctx.lineTo(x + stripeW - h, h);
-        ctx.lineTo(x - h, h);
+        ctx.lineTo(x + stripeW + h, h);
+        ctx.lineTo(x + h, h);
         ctx.closePath();
       }
       ctx.fill();
@@ -1931,12 +2040,15 @@
   // =========================================================================
   // Selection Overlay & Interactive Handles (Single & Multi-Selection)
   // =========================================================================
+  // Canvas Selection Overlay & Fixed Top Contextual Action Bar
+  // =========================================================================
   function updateSelectionOverlay() {
     if (!dom.selectionOverlay) return;
 
     const selectedLayers = getSelectedLayers();
     if (selectedLayers.length === 0) {
       dom.selectionOverlay.innerHTML = '';
+      if (dom.canvasTopContextBar) dom.canvasTopContextBar.style.display = 'none';
       return;
     }
 
@@ -1951,53 +2063,48 @@
       const boxY = selected.y * zoom;
       const rot = selected.rotation || 0;
 
+      const isAspectLocked = state.lockAspectRatio;
+      const edgeHandlesHtml = isAspectLocked ? '' : `
+          <div class="handle handle-n"  data-handle="n"></div>
+          <div class="handle handle-e"  data-handle="e"></div>
+          <div class="handle handle-s"  data-handle="s"></div>
+          <div class="handle handle-w"  data-handle="w"></div>
+      `;
+
       dom.selectionOverlay.innerHTML = `
-        <div class="bounding-box" id="active-bounding-box" style="
+        <div class="bounding-box ${isAspectLocked ? 'aspect-locked' : ''}" id="active-bounding-box" style="
           width: ${boxW}px;
           height: ${boxH}px;
           left: ${boxX}px;
           top: ${boxY}px;
           transform: translate(-50%, -50%) rotate(${rot}deg);
         ">
-          <!-- 8 Resize handles -->
+          <!-- 4 Corner Resize handles -->
           <div class="handle handle-nw" data-handle="nw"></div>
-          <div class="handle handle-n"  data-handle="n"></div>
           <div class="handle handle-ne" data-handle="ne"></div>
-          <div class="handle handle-e"  data-handle="e"></div>
           <div class="handle handle-se" data-handle="se"></div>
-          <div class="handle handle-s"  data-handle="s"></div>
           <div class="handle handle-sw" data-handle="sw"></div>
-          <div class="handle handle-w"  data-handle="w"></div>
+          ${edgeHandlesHtml}
 
           <!-- Rotation arm & Prominent rotation handle -->
           <div class="rotate-arm"></div>
           <div class="handle-rotate" data-handle="rotate" title="拖拽旋转 (按住 Shift 吸附15°)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
           </div>
-
-          <!-- Quick Action Floating Bar -->
-          <div class="layer-floating-bar" id="layer-floating-bar">
-            <button class="floating-btn" id="float-btn-top" title="置于最顶层">
-              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/><line x1="6" y1="5" x2="18" y2="5"/></svg>
-              置顶
-            </button>
-            <button class="floating-btn" id="float-btn-dup" title="复制图层 (Ctrl+D)">
-              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              复制
-            </button>
-            <button class="floating-btn" id="float-btn-flip" title="水平镜像翻转">
-              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
-              翻转
-            </button>
-            <button class="floating-btn btn-danger" id="float-btn-del" title="删除图层 (Del)">
-              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              删除
-            </button>
-          </div>
         </div>
       `;
 
-      bindFloatingBarEvents(selected.id);
+      // Update Fixed Top Contextual Action Bar
+      if (dom.canvasTopContextBar) {
+        let typeLabel = '贴画素材';
+        if (selected.type === 'text') typeLabel = '艺术标语';
+        else if (selected.type === 'shape') typeLabel = '装饰图形';
+
+        const displayName = selected.text ? `"${selected.text}"` : (selected.name || '已选组件');
+        if (dom.contextBarType) dom.contextBarType.textContent = typeLabel;
+        if (dom.contextBarName) dom.contextBarName.textContent = displayName;
+        dom.canvasTopContextBar.style.display = 'flex';
+      }
       return;
     }
 
@@ -2020,125 +2127,39 @@
     const groupX = groupAABB.x * zoom;
     const groupY = groupAABB.y * zoom;
 
+    const isGroupAspectLocked = state.lockAspectRatio;
+    const groupEdgeHandlesHtml = isGroupAspectLocked ? '' : `
+        <div class="handle handle-n"  data-handle="n"></div>
+        <div class="handle handle-e"  data-handle="e"></div>
+        <div class="handle handle-s"  data-handle="s"></div>
+        <div class="handle handle-w"  data-handle="w"></div>
+    `;
+
     dom.selectionOverlay.innerHTML = `
       ${subBoxesHtml}
-      <div class="bounding-box multi-group" id="active-bounding-box" style="
+      <div class="bounding-box multi-group ${isGroupAspectLocked ? 'aspect-locked' : ''}" id="active-bounding-box" style="
         width: ${groupW}px;
         height: ${groupH}px;
         left: ${groupX}px;
         top: ${groupY}px;
         transform: translate(-50%, -50%);
       ">
-        <!-- 8 Group Resize handles -->
+        <!-- 4 Corner Group Resize handles -->
         <div class="handle handle-nw" data-handle="nw"></div>
-        <div class="handle handle-n"  data-handle="n"></div>
         <div class="handle handle-ne" data-handle="ne"></div>
-        <div class="handle handle-e"  data-handle="e"></div>
         <div class="handle handle-se" data-handle="se"></div>
-        <div class="handle handle-s"  data-handle="s"></div>
         <div class="handle handle-sw" data-handle="sw"></div>
-        <div class="handle handle-w"  data-handle="w"></div>
+        ${groupEdgeHandlesHtml}
 
-        <div class="multi-selection-badge">已选中 ${selectedLayers.length} 个图层 (可整体拖动/缩放)</div>
-
-        <!-- Multi-Group Quick Action Floating Bar -->
-        <div class="layer-floating-bar" id="layer-floating-bar">
-          <button class="floating-btn" id="float-btn-group-top" title="批量置顶">
-            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/><line x1="6" y1="5" x2="18" y2="5"/></svg>
-            组合置顶
-          </button>
-          <button class="floating-btn" id="float-btn-group-dup" title="批量复制 (Ctrl+D)">
-            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            批量复制
-          </button>
-          <button class="floating-btn" id="float-btn-group-flip" title="批量水平镜像">
-            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
-            水平翻转
-          </button>
-          <button class="floating-btn btn-danger" id="float-btn-group-del" title="批量删除 (Del)">
-            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            批量删除 (${selectedLayers.length})
-          </button>
-        </div>
+        <div class="multi-selection-badge">已选中 ${selectedLayers.length} 个组件 (可整体拖动/缩放)</div>
       </div>
     `;
 
-    bindGroupFloatingBarEvents();
-  }
-
-  function bindFloatingBarEvents(layerId) {
-    const floatBar = document.getElementById('layer-floating-bar');
-    if (floatBar) {
-      floatBar.onmousedown = (e) => e.stopPropagation();
-      floatBar.onclick = (e) => e.stopPropagation();
-    }
-
-    const floatTop = document.getElementById('float-btn-top');
-    const floatDup = document.getElementById('float-btn-dup');
-    const floatFlip = document.getElementById('float-btn-flip');
-    const floatDel = document.getElementById('float-btn-del');
-
-    if (floatTop) {
-      floatTop.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        moveLayerToTop(layerId);
-      };
-    }
-    if (floatDup) {
-      floatDup.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        duplicateLayer(layerId);
-      };
-    }
-    if (floatFlip) {
-      floatFlip.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        toggleFlipH(layerId);
-      };
-    }
-    if (floatDel) {
-      floatDel.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        deleteLayer(layerId);
-      };
-    }
-  }
-
-  function bindGroupFloatingBarEvents() {
-    const floatBar = document.getElementById('layer-floating-bar');
-    if (floatBar) {
-      floatBar.onmousedown = (e) => e.stopPropagation();
-      floatBar.onclick = (e) => e.stopPropagation();
-    }
-
-    const btnGroupTop = document.getElementById('float-btn-group-top');
-    const btnGroupDup = document.getElementById('float-btn-group-dup');
-    const btnGroupFlip = document.getElementById('float-btn-group-flip');
-    const btnGroupDel = document.getElementById('float-btn-group-del');
-
-    if (btnGroupTop) {
-      btnGroupTop.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        moveSelectedLayersToTop();
-      };
-    }
-    if (btnGroupDup) {
-      btnGroupDup.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        duplicateSelectedLayers();
-      };
-    }
-    if (btnGroupFlip) {
-      btnGroupFlip.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        flipSelectedLayersH();
-      };
-    }
-    if (btnGroupDel) {
-      btnGroupDel.onclick = (e) => {
-        e.stopPropagation(); e.preventDefault();
-        deleteSelectedLayers();
-      };
+    // Update Fixed Top Contextual Action Bar for Multi-Selection
+    if (dom.canvasTopContextBar) {
+      if (dom.contextBarType) dom.contextBarType.textContent = '组合多选';
+      if (dom.contextBarName) dom.contextBarName.textContent = `已选 ${selectedLayers.length} 个画面组件`;
+      dom.canvasTopContextBar.style.display = 'flex';
     }
   }
 
@@ -2146,11 +2167,11 @@
   // Canvas Mouse Interaction Engine (Dragging, Resizing, Rotating, Marquee)
   // =========================================================================
   function getCanvasCoords(clientX, clientY) {
-    const rect = dom.mainCanvas.getBoundingClientRect();
-    const scaleX = rect.width / state.canvasWidth;
-    const scaleY = rect.height / state.canvasHeight;
-    const x = (clientX - rect.left) / scaleX;
-    const y = (clientY - rect.top) / scaleY;
+    if (!dom.artboardWrapper) return { x: 0, y: 0 };
+    const rect = dom.artboardWrapper.getBoundingClientRect();
+    const zoom = state.zoom || 1;
+    const x = (clientX - rect.left) / zoom;
+    const y = (clientY - rect.top) / zoom;
     return { x, y };
   }
 
@@ -2356,28 +2377,59 @@
 
         let newW = inter.layerStartW;
         let newH = inter.layerStartH;
-        const aspect = inter.initialAspect;
+        const aspect = inter.initialAspect || (inter.layerStartW / (inter.layerStartH || 1));
+        const lockAspect = state.lockAspectRatio || e.shiftKey;
 
-        if (inter.handle === 'se') {
-          newW = Math.max(20, inter.layerStartW + ldx * 2);
-          newH = Math.round(newW / aspect);
-        } else if (inter.handle === 'nw') {
-          newW = Math.max(20, inter.layerStartW - ldx * 2);
-          newH = Math.round(newW / aspect);
-        } else if (inter.handle === 'ne') {
-          newW = Math.max(20, inter.layerStartW + ldx * 2);
-          newH = Math.round(newW / aspect);
-        } else if (inter.handle === 'sw') {
-          newW = Math.max(20, inter.layerStartW - ldx * 2);
-          newH = Math.round(newW / aspect);
-        } else if (inter.handle === 'e') {
-          newW = Math.max(20, inter.layerStartW + ldx * 2);
-        } else if (inter.handle === 'w') {
-          newW = Math.max(20, inter.layerStartW - ldx * 2);
-        } else if (inter.handle === 's') {
-          newH = Math.max(20, inter.layerStartH + ldy * 2);
-        } else if (inter.handle === 'n') {
-          newH = Math.max(20, inter.layerStartH - ldy * 2);
+        if (lockAspect) {
+          // Strict proportional scaling
+          if (inter.handle === 'se') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 'nw') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 'ne') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 'sw') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 'e') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 'w') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+            newH = Math.round(newW / aspect);
+          } else if (inter.handle === 's') {
+            newH = Math.max(20, inter.layerStartH + ldy * 2);
+            newW = Math.round(newH * aspect);
+          } else if (inter.handle === 'n') {
+            newH = Math.max(20, inter.layerStartH - ldy * 2);
+            newW = Math.round(newH * aspect);
+          }
+        } else {
+          // Free Non-Proportional Scaling (When Unlocked)
+          if (inter.handle === 'se') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+            newH = Math.max(20, inter.layerStartH + ldy * 2);
+          } else if (inter.handle === 'nw') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+            newH = Math.max(20, inter.layerStartH - ldy * 2);
+          } else if (inter.handle === 'ne') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+            newH = Math.max(20, inter.layerStartH - ldy * 2);
+          } else if (inter.handle === 'sw') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+            newH = Math.max(20, inter.layerStartH + ldy * 2);
+          } else if (inter.handle === 'e') {
+            newW = Math.max(20, inter.layerStartW + ldx * 2);
+          } else if (inter.handle === 'w') {
+            newW = Math.max(20, inter.layerStartW - ldx * 2);
+          } else if (inter.handle === 's') {
+            newH = Math.max(20, inter.layerStartH + ldy * 2);
+          } else if (inter.handle === 'n') {
+            newH = Math.max(20, inter.layerStartH - ldy * 2);
+          }
         }
 
         if (selected.type === 'text') {
@@ -2395,31 +2447,52 @@
         const gBox = inter.groupStartBox;
         let scaleFactorX = 1;
         let scaleFactorY = 1;
+        const lockAspect = state.lockAspectRatio || e.shiftKey;
 
-        if (inter.handle === 'se') {
-          const newW = Math.max(30, gBox.width + dx * 2);
-          scaleFactorX = newW / gBox.width;
-          scaleFactorY = scaleFactorX;
-        } else if (inter.handle === 'nw') {
-          const newW = Math.max(30, gBox.width - dx * 2);
-          scaleFactorX = newW / gBox.width;
-          scaleFactorY = scaleFactorX;
-        } else if (inter.handle === 'ne') {
-          const newW = Math.max(30, gBox.width + dx * 2);
-          scaleFactorX = newW / gBox.width;
-          scaleFactorY = scaleFactorX;
-        } else if (inter.handle === 'sw') {
-          const newW = Math.max(30, gBox.width - dx * 2);
-          scaleFactorX = newW / gBox.width;
-          scaleFactorY = scaleFactorX;
-        } else if (inter.handle === 'e') {
-          scaleFactorX = Math.max(0.1, (gBox.width + dx * 2) / gBox.width);
-        } else if (inter.handle === 'w') {
-          scaleFactorX = Math.max(0.1, (gBox.width - dx * 2) / gBox.width);
-        } else if (inter.handle === 's') {
-          scaleFactorY = Math.max(0.1, (gBox.height + dy * 2) / gBox.height);
-        } else if (inter.handle === 'n') {
-          scaleFactorY = Math.max(0.1, (gBox.height - dy * 2) / gBox.height);
+        if (lockAspect) {
+          if (inter.handle === 'se' || inter.handle === 'ne') {
+            const newW = Math.max(30, gBox.width + dx * 2);
+            scaleFactorX = newW / gBox.width;
+            scaleFactorY = scaleFactorX;
+          } else if (inter.handle === 'nw' || inter.handle === 'sw') {
+            const newW = Math.max(30, gBox.width - dx * 2);
+            scaleFactorX = newW / gBox.width;
+            scaleFactorY = scaleFactorX;
+          } else if (inter.handle === 'e') {
+            scaleFactorX = Math.max(0.1, (gBox.width + dx * 2) / gBox.width);
+            scaleFactorY = scaleFactorX;
+          } else if (inter.handle === 'w') {
+            scaleFactorX = Math.max(0.1, (gBox.width - dx * 2) / gBox.width);
+            scaleFactorY = scaleFactorX;
+          } else if (inter.handle === 's') {
+            scaleFactorY = Math.max(0.1, (gBox.height + dy * 2) / gBox.height);
+            scaleFactorX = scaleFactorY;
+          } else if (inter.handle === 'n') {
+            scaleFactorY = Math.max(0.1, (gBox.height - dy * 2) / gBox.height);
+            scaleFactorX = scaleFactorY;
+          }
+        } else {
+          if (inter.handle === 'se') {
+            scaleFactorX = Math.max(0.1, (gBox.width + dx * 2) / gBox.width);
+            scaleFactorY = Math.max(0.1, (gBox.height + dy * 2) / gBox.height);
+          } else if (inter.handle === 'nw') {
+            scaleFactorX = Math.max(0.1, (gBox.width - dx * 2) / gBox.width);
+            scaleFactorY = Math.max(0.1, (gBox.height - dy * 2) / gBox.height);
+          } else if (inter.handle === 'ne') {
+            scaleFactorX = Math.max(0.1, (gBox.width + dx * 2) / gBox.width);
+            scaleFactorY = Math.max(0.1, (gBox.height - dy * 2) / gBox.height);
+          } else if (inter.handle === 'sw') {
+            scaleFactorX = Math.max(0.1, (gBox.width - dx * 2) / gBox.width);
+            scaleFactorY = Math.max(0.1, (gBox.height + dy * 2) / gBox.height);
+          } else if (inter.handle === 'e') {
+            scaleFactorX = Math.max(0.1, (gBox.width + dx * 2) / gBox.width);
+          } else if (inter.handle === 'w') {
+            scaleFactorX = Math.max(0.1, (gBox.width - dx * 2) / gBox.width);
+          } else if (inter.handle === 's') {
+            scaleFactorY = Math.max(0.1, (gBox.height + dy * 2) / gBox.height);
+          } else if (inter.handle === 'n') {
+            scaleFactorY = Math.max(0.1, (gBox.height - dy * 2) / gBox.height);
+          }
         }
 
         for (const snap of inter.layersSnapshot) {
@@ -2525,7 +2598,7 @@
       updateInspectorUI();
 
       if (type === 'marquee' && state.selectedLayerIds.length > 1 && hasMoved) {
-        showToast(`已框选 ${state.selectedLayerIds.length} 个图层`, 'info');
+        showToast(`已框选 ${state.selectedLayerIds.length} 个贴画`, 'info');
       }
 
       if (hasMoved && (type === 'dragging' || type === 'resizing' || type === 'rotating')) {
@@ -2545,7 +2618,18 @@
     recordHistory();
     renderCanvas();
     updateLayersUI();
-    showToast('图层已置于顶层', 'info');
+    showToast('贴画已置于顶层', 'info');
+  }
+
+  function moveLayerToBottom(id) {
+    const idx = state.layers.findIndex(l => l.id === id);
+    if (idx === -1 || idx === 0) return;
+    const [layer] = state.layers.splice(idx, 1);
+    state.layers.unshift(layer);
+    recordHistory();
+    renderCanvas();
+    updateLayersUI();
+    showToast('贴画已置于底层', 'info');
   }
 
   function moveSelectedLayersToTop() {
@@ -2556,7 +2640,18 @@
     recordHistory();
     renderCanvas();
     updateLayersUI();
-    showToast(`已将选中的 ${selected.length} 个图层置于顶层`, 'info');
+    showToast(`已将选中的 ${selected.length} 个贴画置于顶层`, 'info');
+  }
+
+  function moveSelectedLayersToBottom() {
+    if (state.selectedLayerIds.length === 0) return;
+    const selected = state.layers.filter(l => state.selectedLayerIds.includes(l.id));
+    state.layers = state.layers.filter(l => !state.selectedLayerIds.includes(l.id));
+    state.layers.unshift(...selected);
+    recordHistory();
+    renderCanvas();
+    updateLayersUI();
+    showToast(`已将选中的 ${selected.length} 个贴画置于底层`, 'info');
   }
 
   function moveLayerUp(id) {
@@ -2596,44 +2691,51 @@
     recordHistory();
     renderCanvas();
     updateLayersUI();
-    updateInspectorUI();
-    showToast('图层已复制', 'info');
+    selectLayer(copy.id);
+    showToast('贴画已复制', 'info');
   }
 
   function duplicateSelectedLayers() {
     if (state.selectedLayerIds.length === 0) return;
     const newSelectedIds = [];
+    const newLayers = [];
+
     for (const id of state.selectedLayerIds) {
       const target = state.layers.find(l => l.id === id);
-      if (target) {
-        const copy = JSON.parse(JSON.stringify(target));
-        copy.id = generateId(target.type);
-        copy.name = `${target.name} 副本`;
-        copy.x += 30;
-        copy.y += 30;
-        if (target.img) copy.img = target.img;
-        state.layers.push(copy);
-        newSelectedIds.push(copy.id);
-      }
+      if (!target) continue;
+      const copy = JSON.parse(JSON.stringify(target));
+      copy.id = generateId(target.type);
+      copy.name = `${target.name} 副本`;
+      copy.x += 30;
+      copy.y += 30;
+      if (target.img) copy.img = target.img;
+      newLayers.push(copy);
+      newSelectedIds.push(copy.id);
     }
+
+    state.layers.push(...newLayers);
     state.selectedLayerIds = newSelectedIds;
+    state.selectedLayerId = newSelectedIds[0] || null;
+
     recordHistory();
     renderCanvas();
     updateLayersUI();
+    updateSelectionOverlay();
     updateInspectorUI();
-    showToast(`已批量复制 ${newSelectedIds.length} 个图层`, 'info');
+    showToast(`已批量复制 ${newSelectedIds.length} 个贴画`, 'info');
   }
 
   function deleteLayer(id) {
     const idx = state.layers.findIndex(l => l.id === id);
     if (idx === -1) return;
     state.layers.splice(idx, 1);
+    if (state.selectedLayerId === id) state.selectedLayerId = null;
     state.selectedLayerIds = state.selectedLayerIds.filter(x => x !== id);
     recordHistory();
     renderCanvas();
     updateLayersUI();
     updateInspectorUI();
-    showToast('图层已删除', 'info');
+    showToast('贴画已删除', 'info');
   }
 
   function deleteSelectedLayers() {
@@ -2641,11 +2743,12 @@
     const count = state.selectedLayerIds.length;
     state.layers = state.layers.filter(l => !state.selectedLayerIds.includes(l.id));
     state.selectedLayerIds = [];
+    state.selectedLayerId = null;
     recordHistory();
     renderCanvas();
     updateLayersUI();
     updateInspectorUI();
-    showToast(`已删除 ${count} 个图层`, 'info');
+    showToast(`已删除 ${count} 个贴画`, 'info');
   }
 
   function toggleFlipH(id) {
@@ -2670,7 +2773,7 @@
     }
     recordHistory();
     renderCanvas();
-    showToast(`已水平翻转 ${selected.length} 个图层`, 'info');
+    showToast(`已水平翻转 ${selected.length} 个贴画`, 'info');
   }
 
   function toggleFlipV(id) {
@@ -2854,6 +2957,19 @@
     if (!dom.layerCountBadge || !dom.layerListContainer) return;
     dom.layerCountBadge.textContent = state.layers.length;
 
+    // Sync Lock All Button UI & Icon
+    const allLocked = state.layers.length > 0 && state.layers.every(l => l.locked);
+    if (dom.labelLockAll) dom.labelLockAll.textContent = allLocked ? '解锁全部' : '锁定全部';
+    if (dom.btnLockAllLayers) {
+      dom.btnLockAllLayers.classList.toggle('active', allLocked);
+      dom.btnLockAllLayers.title = allLocked ? '点击一键解锁所有贴画与组件' : '锁定所有贴画 (防误触拖动)';
+    }
+    if (dom.iconLockAll) {
+      dom.iconLockAll.innerHTML = allLocked
+        ? `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`
+        : `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+    }
+
     const reversed = [...state.layers].reverse();
     dom.layerListContainer.innerHTML = reversed.map(l => {
       const isSelected = isLayerSelected(l.id);
@@ -2930,16 +3046,16 @@
     }
 
     if (dom.noSelectionHint) dom.noSelectionHint.style.display = 'none';
-    if (dom.layerPropertiesForm) dom.layerPropertiesForm.style.display = 'block';
+    if (dom.layerPropertiesForm) dom.layerPropertiesForm.style.display = 'flex';
 
     updateInspectorFields();
 
     // Show/hide type-specific sections
     if (selectedLayers.length === 1) {
       const selected = selectedLayers[0];
-      if (dom.inspectorTextSection) dom.inspectorTextSection.style.display = selected.type === 'text' ? 'block' : 'none';
-      if (dom.inspectorImageSection) dom.inspectorImageSection.style.display = (selected.type === 'sticker' || selected.type === 'image') ? 'block' : 'none';
-      if (dom.inspectorShapeSection) dom.inspectorShapeSection.style.display = selected.type === 'shape' ? 'block' : 'none';
+      if (dom.inspectorTextSection) dom.inspectorTextSection.style.display = selected.type === 'text' ? 'flex' : 'none';
+      if (dom.inspectorImageSection) dom.inspectorImageSection.style.display = (selected.type === 'sticker' || selected.type === 'image') ? 'flex' : 'none';
+      if (dom.inspectorShapeSection) dom.inspectorShapeSection.style.display = selected.type === 'shape' ? 'flex' : 'none';
     } else {
       if (dom.inspectorTextSection) dom.inspectorTextSection.style.display = 'none';
       if (dom.inspectorImageSection) dom.inspectorImageSection.style.display = 'none';
@@ -3012,6 +3128,30 @@
         if (dom.propHeight) dom.propHeight.value = Math.round(gBox.height);
         if (dom.propRotation) dom.propRotation.value = 0;
       }
+    }
+  }
+
+  function updateAspectRatioLockUI() {
+    if (!dom.btnLockAspectRatio) return;
+    if (state.lockAspectRatio) {
+      dom.btnLockAspectRatio.classList.add('active');
+      dom.btnLockAspectRatio.title = '长宽比已锁定 (点击解锁)';
+      dom.btnLockAspectRatio.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      `;
+    } else {
+      dom.btnLockAspectRatio.classList.remove('active');
+      dom.btnLockAspectRatio.title = '长宽比已解锁 (点击锁定)';
+      dom.btnLockAspectRatio.innerHTML = `
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/>
+        </svg>
+      `;
     }
   }
 
@@ -3159,11 +3299,21 @@
 
     const handleDrop = async (e) => {
       e.preventDefault();
-      const stickerSrc = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
+      const rawData = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
       const { x, y } = getCanvasCoords(e.clientX, e.clientY);
 
-      if (stickerSrc) {
-        addStickerLayer(stickerSrc, '贴图', x, y);
+      if (rawData) {
+        if (rawData.startsWith('zzz-preset-text:')) {
+          const preset = rawData.replace('zzz-preset-text:', '');
+          addTextLayer(preset, x, y);
+          return;
+        }
+        if (rawData.startsWith('zzz-shape:')) {
+          const shape = rawData.replace('zzz-shape:', '');
+          addShapeLayer(shape, x, y);
+          return;
+        }
+        addStickerLayer(rawData, '贴图', x, y);
         return;
       }
 
@@ -3230,17 +3380,33 @@
       }
     }, { passive: false });
 
-    // History controls & Manual Save Draft
+    // History controls & Canvas Clear
     dom.btnUndo.addEventListener('click', undo);
     dom.btnRedo.addEventListener('click', redo);
     dom.btnClearCanvas.addEventListener('click', () => {
-      if (confirm('确认清空所有图层吗？')) {
+      if (confirm('确认清空所有贴画与文字组件并重置画布为纯色背景吗？')) {
         state.layers = [];
         state.selectedLayerIds = [];
+        state.background = {
+          type: 'color',
+          color: '#ffffff',
+          gradient: { type: 'linear', angle: 135, color1: '#0f172a', color2: '#1e293b' },
+          popdots: null,
+          film: null,
+          decoration: { type: 'none', color: '#ffffff', opacity: 0.35, scale: 1 },
+          image: null,
+          imageSrc: null,
+          imageFit: 'cover',
+          blur: 0,
+          overlayOpacity: 0
+        };
+        ensureBackgroundState();
+        syncBackgroundControls();
         recordHistory();
         renderCanvas();
         updateLayersUI();
         updateInspectorUI();
+        showToast('画布贴画与组件已全部清空恢复纯色', 'info');
       }
     });
 
@@ -3571,15 +3737,33 @@
     });
     dom.sliderBgOverlay.addEventListener('change', recordHistory);
 
-    // Text Preset Cards
-    dom.btnAddCustomText.addEventListener('click', () => addTextLayer('main-title'));
+    // Text Preset Cards Click & Drag-and-Drop
+    if (dom.btnAddCustomText) {
+      dom.btnAddCustomText.setAttribute('draggable', 'true');
+      dom.btnAddCustomText.addEventListener('click', () => addTextLayer('main-title'));
+      dom.btnAddCustomText.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', 'zzz-preset-text:main-title');
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+
     document.querySelectorAll('.text-preset-card[data-preset]').forEach(card => {
+      card.setAttribute('draggable', 'true');
       card.addEventListener('click', () => addTextLayer(card.dataset.preset));
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', 'zzz-preset-text:' + card.dataset.preset);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
     });
 
-    // Shapes Cards
+    // Shapes Cards Click & Drag-and-Drop
     document.querySelectorAll('[data-shape]').forEach(btn => {
+      btn.setAttribute('draggable', 'true');
       btn.addEventListener('click', () => addShapeLayer(btn.dataset.shape));
+      btn.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', 'zzz-shape:' + btn.dataset.shape);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
     });
 
     // Custom Uploads
@@ -3599,10 +3783,28 @@
     });
 
     // Property Inspector Form Inputs
+    if (dom.btnLockAspectRatio) {
+      dom.btnLockAspectRatio.addEventListener('click', () => {
+        state.lockAspectRatio = !state.lockAspectRatio;
+        updateAspectRatioLockUI();
+        updateSelectionOverlay();
+      });
+    }
+
     dom.propWidth.addEventListener('input', (e) => {
       const selected = getSelectedLayers();
       if (selected.length === 1) {
-        selected[0].width = parseInt(e.target.value, 10) || 10;
+        const layer = selected[0];
+        const newW = Math.max(10, parseInt(e.target.value, 10) || 10);
+        if (state.lockAspectRatio && layer.width > 0 && layer.height > 0) {
+          const ratio = layer.height / layer.width;
+          const newH = Math.max(10, Math.round(newW * ratio));
+          layer.width = newW;
+          layer.height = newH;
+          if (dom.propHeight) dom.propHeight.value = newH;
+        } else {
+          layer.width = newW;
+        }
         renderCanvas();
       }
     });
@@ -3611,7 +3813,17 @@
     dom.propHeight.addEventListener('input', (e) => {
       const selected = getSelectedLayers();
       if (selected.length === 1) {
-        selected[0].height = parseInt(e.target.value, 10) || 10;
+        const layer = selected[0];
+        const newH = Math.max(10, parseInt(e.target.value, 10) || 10);
+        if (state.lockAspectRatio && layer.width > 0 && layer.height > 0) {
+          const ratio = layer.width / layer.height;
+          const newW = Math.max(10, Math.round(newH * ratio));
+          layer.height = newH;
+          layer.width = newW;
+          if (dom.propWidth) dom.propWidth.value = newW;
+        } else {
+          layer.height = newH;
+        }
         renderCanvas();
       }
     });
@@ -3963,7 +4175,49 @@
       dom.propShapeRadius.addEventListener('change', recordHistory);
     }
 
+    // Fixed Top Contextual Action Bar buttons
+    if (dom.ctxBtnTop) {
+      dom.ctxBtnTop.addEventListener('click', () => {
+        const selected = getSelectedLayers();
+        if (selected.length > 1) moveSelectedLayersToTop();
+        else if (selected.length === 1) moveLayerToTop(selected[0].id);
+      });
+    }
+    if (dom.ctxBtnBottom) {
+      dom.ctxBtnBottom.addEventListener('click', () => {
+        const selected = getSelectedLayers();
+        if (selected.length > 1) moveSelectedLayersToBottom();
+        else if (selected.length === 1) moveLayerToBottom(selected[0].id);
+      });
+    }
+    if (dom.ctxBtnDup) {
+      dom.ctxBtnDup.addEventListener('click', () => {
+        const selected = getSelectedLayers();
+        if (selected.length > 1) duplicateSelectedLayers();
+        else if (selected.length === 1) duplicateLayer(selected[0].id);
+      });
+    }
+    if (dom.ctxBtnDel) {
+      dom.ctxBtnDel.addEventListener('click', () => {
+        const selected = getSelectedLayers();
+        if (selected.length > 1) deleteSelectedLayers();
+        else if (selected.length === 1) deleteLayer(selected[0].id);
+      });
+    }
+
     // Inspector Action buttons
+    if (dom.btnPropBringFront) {
+      dom.btnPropBringFront.addEventListener('click', () => {
+        if (state.selectedLayerIds.length > 1) moveSelectedLayersToTop();
+        else if (state.selectedLayerId) moveLayerToTop(state.selectedLayerId);
+      });
+    }
+    if (dom.btnPropSendBack) {
+      dom.btnPropSendBack.addEventListener('click', () => {
+        if (state.selectedLayerIds.length > 1) moveSelectedLayersToBottom();
+        else if (state.selectedLayerId) moveLayerToBottom(state.selectedLayerId);
+      });
+    }
     dom.btnPropDuplicate.addEventListener('click', () => {
       if (state.selectedLayerIds.length > 1) duplicateSelectedLayers();
       else if (state.selectedLayerId) duplicateLayer(state.selectedLayerId);
@@ -3979,12 +4233,31 @@
     dom.btnFlipV.addEventListener('click', () => {
       if (state.selectedLayerId) toggleFlipV(state.selectedLayerId);
     });
-    dom.btnLayerUp.addEventListener('click', () => {
-      if (state.selectedLayerId) moveLayerUp(state.selectedLayerId);
-    });
-    dom.btnLayerDown.addEventListener('click', () => {
-      if (state.selectedLayerId) moveLayerDown(state.selectedLayerId);
-    });
+    if (dom.btnLayerUp) {
+      dom.btnLayerUp.addEventListener('click', () => {
+        if (state.selectedLayerId) moveLayerUp(state.selectedLayerId);
+      });
+    }
+    if (dom.btnLayerDown) {
+      dom.btnLayerDown.addEventListener('click', () => {
+        if (state.selectedLayerId) moveLayerDown(state.selectedLayerId);
+      });
+    }
+    if (dom.btnLockAllLayers) {
+      dom.btnLockAllLayers.addEventListener('click', () => {
+        if (state.layers.length === 0) {
+          showToast('画布中暂无贴画与组件', 'info');
+          return;
+        }
+        const allLocked = state.layers.every(l => l.locked);
+        const targetState = !allLocked;
+        state.layers.forEach(l => l.locked = targetState);
+        recordHistory();
+        updateLayersUI();
+        updateSelectionOverlay();
+        showToast(targetState ? '已锁定全部贴画（防止误触拖动）' : '已解锁全部贴画', 'info');
+      });
+    }
 
     // Export & Copy Modal
     dom.btnOpenExport.addEventListener('click', () => {
@@ -3997,6 +4270,13 @@
       dom.btnOpenProjectModal.addEventListener('click', () => {
         if (dom.inputProjectName) dom.inputProjectName.value = state.projectTitle || '绝区零海报作品';
         dom.modalProject.showModal();
+      });
+    }
+
+    // About Information Modal
+    if (dom.btnOpenAboutModal && dom.modalAbout) {
+      dom.btnOpenAboutModal.addEventListener('click', () => {
+        dom.modalAbout.showModal();
       });
     }
 
@@ -4120,7 +4400,7 @@
   // High-Resolution Exporting & Clipboard
   // =========================================================================
   function generateHighResCanvas() {
-    const scale = state.exportSettings.scale || 2;
+    const scale = (state.exportSettings && state.exportSettings.scale) || 2;
     const offCanvas = document.createElement('canvas');
     offCanvas.width = state.canvasWidth * scale;
     offCanvas.height = state.canvasHeight * scale;
@@ -4138,35 +4418,85 @@
   }
 
   function downloadExportImage() {
-    const canvas = generateHighResCanvas();
-    const fmt = state.exportSettings.format;
-    const ext = state.exportSettings.ext;
+    try {
+      const canvas = generateHighResCanvas();
+      const fmt = (state.exportSettings && state.exportSettings.format) || 'image/png';
+      const ext = (state.exportSettings && state.exportSettings.ext) || 'png';
 
-    const dataUrl = canvas.toDataURL(fmt, 0.95);
-    const link = document.createElement('a');
-    link.download = `ZZZ_Poster_${Date.now()}.${ext}`;
-    link.href = dataUrl;
-    link.click();
-    dom.modalExport.close();
-    showToast('海报已开始下载！', 'success');
+      if (canvas.toBlob) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `ZZZ_Poster_${Date.now()}.${ext}`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            if (dom.modalExport) dom.modalExport.close();
+            showToast('海报已开始下载！', 'success');
+          } else {
+            fallbackDataUrlDownload(canvas, fmt, ext);
+          }
+        }, fmt, 0.95);
+      } else {
+        fallbackDataUrlDownload(canvas, fmt, ext);
+      }
+    } catch (err) {
+      console.error('[ExportDownloadError]', err);
+      showToast('导出图片失败：' + (err.message || '画布跨域或受限'), 'danger');
+    }
+  }
+
+  function fallbackDataUrlDownload(canvas, fmt, ext) {
+    try {
+      const dataUrl = canvas.toDataURL(fmt, 0.95);
+      const link = document.createElement('a');
+      link.download = `ZZZ_Poster_${Date.now()}.${ext}`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      if (dom.modalExport) dom.modalExport.close();
+      showToast('海报已开始下载！', 'success');
+    } catch (e) {
+      console.error('DataURL download failed:', e);
+      showToast('导出失败：若使用本地 file:// 打开，请使用 python start.py 启动服务', 'warning');
+    }
   }
 
   async function copyCanvasToClipboard() {
     try {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        throw new Error('当前环境不支持直接剪贴板写入');
+      }
+
       const canvas = generateHighResCanvas();
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          showToast('复制失败', 'warning');
-          return;
+      
+      const blob = await new Promise((resolve, reject) => {
+        try {
+          canvas.toBlob((b) => {
+            if (b) resolve(b);
+            else reject(new Error('生成图像数据失败'));
+          }, 'image/png');
+        } catch (e) {
+          reject(e);
         }
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        showToast('已复制高清图片到剪贴板！可以直接粘贴', 'success');
-      }, 'image/png');
+      });
+
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      showToast('已复制高清图片到剪贴板！可以直接粘贴', 'success');
     } catch (err) {
-      console.error(err);
-      showToast('浏览器限制：未能直接写入剪贴板，请使用“导出图片”下载', 'warning');
+      console.warn('Clipboard write failed:', err);
+      showToast('浏览器安全限制：已自动为您转为一键下载高清海报！', 'info');
+      try {
+        downloadExportImage();
+      } catch (e) {
+        showToast('请在右上角点击“导出图片”下载', 'warning');
+      }
     }
   }
 
@@ -4174,72 +4504,87 @@
   // Project Save / Load JSON (v2.0 Specification)
   // =========================================================================
   function saveProjectJSON() {
-    ensureBackgroundState();
+    try {
+      ensureBackgroundState();
 
-    if (dom.inputProjectName && dom.inputProjectName.value.trim()) {
-      state.projectTitle = dom.inputProjectName.value.trim();
-    }
-    
-    const thumbCanvas = document.createElement('canvas');
-    const thumbScale = 300 / Math.max(state.canvasWidth, state.canvasHeight);
-    thumbCanvas.width = Math.round(state.canvasWidth * thumbScale);
-    thumbCanvas.height = Math.round(state.canvasHeight * thumbScale);
-    const thumbCtx = thumbCanvas.getContext('2d');
-    thumbCtx.scale(thumbScale, thumbScale);
-    drawBackground(thumbCtx, state.canvasWidth, state.canvasHeight);
-    for (const layer of state.layers) {
-      if (layer.visible) drawLayer(thumbCtx, layer);
-    }
-    const thumbnailDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.8);
-
-    const project = {
-      $schema: 'https://zzz-poster-studio.app/schemas/project-v2.json',
-      version: '2.0.0',
-      app: 'ZZZ Poster Studio',
-      id: generateId('proj'),
-      metadata: {
-        title: state.projectTitle || '绝区零海报作品',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        targetPlatform: state.currentPresetName
-      },
-      canvas: {
-        width: state.canvasWidth,
-        height: state.canvasHeight,
-        presetName: state.currentPresetName,
-        dpi: 72
-      },
-      background: {
-        type: state.background.type,
-        color: state.background.color,
-        gradient: state.background.gradient,
-        popdots: state.background.popdots,
-        film: state.background.film,
-        decoration: state.background.decoration,
-        image: {
-          src: state.background.imageSrc,
-          fit: state.background.imageFit || 'cover'
-        },
-        effects: {
-          blur: state.background.blur || 0,
-          overlayOpacity: state.background.overlayOpacity || 0
+      if (dom.inputProjectName && dom.inputProjectName.value.trim()) {
+        state.projectTitle = dom.inputProjectName.value.trim();
+      }
+      
+      let thumbnailDataUrl = null;
+      try {
+        const thumbCanvas = document.createElement('canvas');
+        const thumbScale = 300 / Math.max(state.canvasWidth, state.canvasHeight);
+        thumbCanvas.width = Math.round(state.canvasWidth * thumbScale);
+        thumbCanvas.height = Math.round(state.canvasHeight * thumbScale);
+        const thumbCtx = thumbCanvas.getContext('2d');
+        thumbCtx.scale(thumbScale, thumbScale);
+        drawBackground(thumbCtx, state.canvasWidth, state.canvasHeight);
+        for (const layer of state.layers) {
+          if (layer.visible) drawLayer(thumbCtx, layer);
         }
-      },
-      layers: state.layers.map(l => {
-        const copy = { ...l };
-        delete copy.img;
-        return copy;
-      }),
-      previewThumbnail: thumbnailDataUrl
-    };
+        thumbnailDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.8);
+      } catch (thumbErr) {
+        console.warn('Thumbnail generation skipped:', thumbErr);
+      }
 
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.download = `${(state.projectTitle || 'ZZZ_Project').replace(/\s+/g, '_')}_${Date.now()}.zzzposter`;
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    if (dom.modalProject) dom.modalProject.close();
-    showToast('工程文件 (.zzzposter) 已成功导出保存！', 'success');
+      const project = {
+        $schema: 'https://zzz-poster-studio.app/schemas/project-v2.json',
+        version: '2.0.0',
+        app: 'ZZZ Poster Studio',
+        id: generateId('proj'),
+        metadata: {
+          title: state.projectTitle || '绝区零海报作品',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          targetPlatform: state.currentPresetName
+        },
+        canvas: {
+          width: state.canvasWidth,
+          height: state.canvasHeight,
+          presetName: state.currentPresetName,
+          dpi: 72
+        },
+        background: {
+          type: state.background.type,
+          color: state.background.color,
+          gradient: state.background.gradient,
+          popdots: state.background.popdots,
+          film: state.background.film,
+          decoration: state.background.decoration,
+          image: {
+            src: state.background.imageSrc,
+            fit: state.background.imageFit || 'cover'
+          },
+          effects: {
+            blur: state.background.blur || 0,
+            overlayOpacity: state.background.overlayOpacity || 0
+          }
+        },
+        layers: state.layers.map(l => {
+          const copy = { ...l };
+          delete copy.img;
+          return copy;
+        }),
+        previewThumbnail: thumbnailDataUrl
+      };
+
+      const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `${(state.projectTitle || 'ZZZ_Project').replace(/\s+/g, '_')}_${Date.now()}.zzzposter`;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      if (dom.modalProject) dom.modalProject.close();
+      showToast('工程文件 (.zzzposter) 已成功导出保存！', 'success');
+    } catch (err) {
+      console.error('[ProjectSaveError]', err);
+      showToast('保存失败：' + (err.message || err), 'danger');
+    }
   }
 
   function loadProjectJSON(e) {
@@ -4347,20 +4692,30 @@
     if (!dom.toastContainer) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    
+    let iconSvg = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+    if (type === 'success') {
+      iconSvg = '<polyline points="20 6 9 17 4 12"/>';
+    } else if (type === 'warning') {
+      iconSvg = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+    } else if (type === 'danger' || type === 'error') {
+      iconSvg = '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>';
+    }
+
     toast.innerHTML = `
-      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
-        ${type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'}
+      <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.3" fill="none" style="flex-shrink: 0;">
+        ${iconSvg}
       </svg>
       <span>${message}</span>
     `;
     dom.toastContainer.appendChild(toast);
 
     setTimeout(() => {
-      toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      toast.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
       toast.style.opacity = '0';
-      toast.style.transform = 'translateY(-10px)';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+      toast.style.transform = 'translateY(-6px) scale(0.96)';
+      setTimeout(() => toast.remove(), 250);
+    }, 2800);
   }
 
   // Start app when DOM is ready

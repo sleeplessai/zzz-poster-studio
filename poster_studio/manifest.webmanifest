@@ -1,7 +1,7 @@
 {
-  "name": "ZZZ Poster Studio - 绝区零海报封面工坊",
+  "name": "ZZZ Poster Studio - 绝区零海报工坊",
   "short_name": "ZZZ Studio",
-  "description": "清新简单的绝区零海报与封面制作工具，支持表情贴纸、文字排版、背景模糊与图层编辑",
+  "description": "清新简单的绝区零海报制作工具，支持表情贴纸、文字排版、背景模糊与图层编辑",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

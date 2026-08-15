@@ -249,6 +249,14 @@ html, body {
   z-index: 40;
 }
 
+.nav-sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .nav-tab-btn {
   display: flex;
   flex-direction: column;
@@ -325,22 +333,29 @@ html, body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 14px 16px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 20px;
   scrollbar-width: thin;
 }
 
 .drawer-content > :not(.inspector-group) {
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 /* Sticker Tab View */
+#pane-stickers .drawer-content {
+  overflow: hidden;
+  padding: 14px 16px 10px 16px;
+  gap: 12px;
+}
+
 .sticker-search-box {
   position: relative;
   width: 100%;
   flex-shrink: 0;
+  margin-bottom: 2px;
 }
 
 .sticker-search-box input {
@@ -374,9 +389,10 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 140px;
+  max-height: 180px;
   overflow-y: auto;
-  padding: 2px 2px 6px 2px;
+  padding: 2px 2px 8px 2px;
+  border-bottom: 1px solid var(--border-light);
   scrollbar-width: thin;
   flex-shrink: 0;
 }
@@ -408,10 +424,17 @@ html, body {
 }
 
 .sticker-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  align-content: start;
   gap: 10px;
-  padding-bottom: 30px;
+  padding-right: 4px;
+  padding-top: 4px;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
 }
 
 .sticker-item {
@@ -445,6 +468,7 @@ html, body {
 /* Custom Scrollbars */
 .drawer-content::-webkit-scrollbar,
 .category-pill-list::-webkit-scrollbar,
+.sticker-grid::-webkit-scrollbar,
 .layer-list-container::-webkit-scrollbar,
 .inspector-scroll-body::-webkit-scrollbar {
   width: 6px;
@@ -453,6 +477,7 @@ html, body {
 
 .drawer-content::-webkit-scrollbar-track,
 .category-pill-list::-webkit-scrollbar-track,
+.sticker-grid::-webkit-scrollbar-track,
 .layer-list-container::-webkit-scrollbar-track,
 .inspector-scroll-body::-webkit-scrollbar-track {
   background: transparent;
@@ -460,6 +485,7 @@ html, body {
 
 .drawer-content::-webkit-scrollbar-thumb,
 .category-pill-list::-webkit-scrollbar-thumb,
+.sticker-grid::-webkit-scrollbar-thumb,
 .layer-list-container::-webkit-scrollbar-thumb,
 .inspector-scroll-body::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -468,6 +494,7 @@ html, body {
 
 .drawer-content::-webkit-scrollbar-thumb:hover,
 .category-pill-list::-webkit-scrollbar-thumb:hover,
+.sticker-grid::-webkit-scrollbar-thumb:hover,
 .layer-list-container::-webkit-scrollbar-thumb:hover,
 .inspector-scroll-body::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
@@ -546,15 +573,16 @@ html, body {
 .bg-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .section-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin: 0 0 2px 0;
 }
 
 .color-palette-grid {
@@ -661,9 +689,9 @@ html, body {
 .canvas-artboard-wrapper {
   position: relative;
   transform-origin: center center;
-  box-shadow: var(--shadow-canvas);
   border-radius: 4px;
-  background: #ffffff;
+  background: transparent;
+  box-shadow: none;
   transition: transform 0.05s ease-out;
   user-select: none;
   -webkit-user-select: none;
@@ -672,13 +700,11 @@ html, body {
   -webkit-user-drag: none;
   user-drag: none;
   touch-action: none;
+  overflow: visible;
 }
 
 #main-canvas {
   display: block;
-  border-radius: 4px;
-  width: 100%;
-  height: 100%;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -686,6 +712,7 @@ html, body {
   -webkit-user-drag: none;
   user-drag: none;
   touch-action: none;
+  pointer-events: all;
 }
 
 /* Alignment Mask & Smart Snapping Guides Overlay */
@@ -846,6 +873,14 @@ html, body {
 .handle-sw { top: 100%; left: 0%; cursor: nesw-resize; }
 .handle-w  { top: 50%; left: 0%; cursor: ew-resize; }
 
+/* When aspect ratio is locked, hide the 4 edge midpoint handles */
+.bounding-box.aspect-locked .handle-n,
+.bounding-box.aspect-locked .handle-s,
+.bounding-box.aspect-locked .handle-e,
+.bounding-box.aspect-locked .handle-w {
+  display: none !important;
+}
+
 /* Rotation arm and handle */
 .rotate-arm {
   position: absolute;
@@ -894,23 +929,94 @@ html, body {
   pointer-events: none;
 }
 
-/* Floating layer quick action toolbar */
-.layer-floating-bar {
+/* Fixed Top Contextual Action Bar (Figma Style) */
+.canvas-top-context-bar {
   position: absolute;
-  top: -72px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-full);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  padding: 4px 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 60;
+  user-select: none;
+  pointer-events: all;
+  animation: contextBarFadeIn 0.15s ease-out;
+}
+
+@keyframes contextBarFadeIn {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.context-bar-info {
   display: flex;
   align-items: center;
   gap: 6px;
-  pointer-events: all;
+  max-width: 240px;
+  padding-left: 2px;
+}
+
+.context-bar-tag {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--bg-hover);
+  color: var(--accent-primary);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
   white-space: nowrap;
-  z-index: 30;
+}
+
+.context-bar-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.context-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.context-btn {
+  background: transparent;
+  border: none;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.context-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.context-btn.btn-danger:hover {
+  background: #fee2e2;
+  color: var(--accent-danger);
+}
+
+.context-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .floating-btn {
@@ -1068,11 +1174,14 @@ html, body {
 
 .prop-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px;
+  overflow-x: hidden;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  scrollbar-width: thin;
 }
 
 /* Layer List Items */
@@ -1156,33 +1265,43 @@ html, body {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* Property Control Groups & Section Dividers */
+/* Property Control Groups (Airy Layout with Clear Inter-Group Breathing Space) */
+#layer-properties-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+#inspector-text-section,
+#inspector-image-section,
+#inspector-shape-section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
 .inspector-group {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 0;
+  border-bottom: none;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-bottom: 4px;
 }
 
-.inspector-group:first-child {
-  padding-top: 0;
-}
-
-.inspector-group.no-border,
 .inspector-group:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 .inspector-group-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.3px;
+  padding-bottom: 2px;
 }
 
 .inspector-group-title .title-left {
@@ -1198,10 +1317,7 @@ html, body {
 }
 
 .inspector-sub-divider {
-  height: 1px;
-  background: var(--border-light);
-  margin: 4px 0;
-  opacity: 0.7;
+  display: none;
 }
 
 .form-group {
@@ -1234,10 +1350,87 @@ html, body {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
+/* Seamless Custom Color Picker Inputs (Eliminates Browser Corner Clipping) */
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  background-color: transparent;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: block;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input[type="color"]:hover {
+  border-color: var(--border-active);
+}
+
+input[type="color"]:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-light);
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+/* Aspect Ratio Lock Button */
+.aspect-lock-btn {
+  width: 32px;
+  height: 36px;
+  min-width: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.aspect-lock-btn:hover {
+  background: var(--bg-active);
+  color: var(--text-primary);
+  border-color: var(--border-active);
+}
+
+.aspect-lock-btn.active {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+  border-color: rgba(79, 70, 229, 0.4);
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.15);
 }
 
 .button-group-row {
@@ -1315,41 +1508,76 @@ dialog.custom-modal::backdrop {
   margin-top: 20px;
 }
 
-/* Toast Container (Modern popover / snackbars) */
+/* Toast Container (Floating above center workspace, below top bar) */
 #toast-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  z-index: 100;
+  z-index: 1000;
   pointer-events: none;
+  max-width: 90vw;
 }
 
 .toast {
-  pointer-events: all;
-  padding: 10px 16px;
-  background: #0f172a;
-  color: #ffffff;
+  pointer-events: auto;
+  padding: 8px 18px;
+  border-radius: 9999px;
   font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+  letter-spacing: 0.2px;
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: slideInToast 0.25s ease-out forwards;
+  white-space: nowrap;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: slideInToast 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.25s ease;
+  user-select: none;
 }
 
-.toast.success { background: #065f46; }
-.toast.info { background: #1e293b; }
-.toast.warning { background: #9a3412; }
+/* 1. Success: 清新薄荷翡翠绿 */
+.toast.success {
+  background: rgba(16, 185, 129, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 2. Info: 清爽晴空天蓝 */
+.toast.info {
+  background: rgba(14, 165, 233, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 20px -4px rgba(14, 165, 233, 0.35), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 3. Warning: 活力暖阳珊瑚橙 */
+.toast.warning {
+  background: rgba(245, 158, 11, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.35), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 4. Danger / Error: 元气草莓粉红 */
+.toast.danger,
+.toast.error {
+  background: rgba(244, 63, 94, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.35), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
 
 @keyframes slideInToast {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.95);
+    transform: translateY(-8px) scale(0.96);
   }
   to {
     opacity: 1;

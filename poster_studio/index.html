@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ZZZ Poster Studio - 绝区零海报与封面工坊 (PWA)</title>
-  <meta name="description" content="清新简约、功能强大的绝区零海报与封面制作工具，支持236+官方高清表情贴图、多图层编辑、文字描边与阴影、背景高斯模糊与无损高清导出。">
+  <title>ZZZ Poster Studio - 绝区零海报工坊</title>
+  <meta name="description" content="清新简约、功能强大的绝区零海报制作工具，支持官方高清表情贴画、组件自由编辑、文字描边与阴影、背景高斯模糊与无损高清导出。">
   <meta name="theme-color" content="#4f46e5">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icons/zzz_logo_mark.svg">
@@ -51,9 +51,9 @@
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
           清空
         </button>
-        <button id="btn-save-draft" class="btn btn-ghost" title="主动暂存草稿到本地存储 (Ctrl+S)">
+        <button id="btn-save-draft" class="btn btn-ghost" title="主动暂存到本地存储 (Ctrl+S)">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <span>暂存草稿</span>
+          <span>暂存</span>
         </button>
       </div>
 
@@ -94,9 +94,9 @@
     <div class="app-body">
       <!-- Left Tab Icons -->
       <nav class="nav-sidebar">
-        <button class="nav-tab-btn active" data-tab="tab-stickers" title="ZZZ 表情贴图">
+        <button class="nav-tab-btn active" data-tab="tab-stickers" title="ZZZ 表情贴画">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-          <span>贴纸</span>
+          <span>贴画</span>
         </button>
 
         <button class="nav-tab-btn" data-tab="tab-text" title="文字排版与标题">
@@ -118,6 +118,14 @@
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span>上传</span>
         </button>
+
+        <!-- Bottom Action: About Button -->
+        <div class="nav-sidebar-bottom">
+          <button id="btn-open-about-modal" class="nav-tab-btn" title="关于 ZZZ Poster Studio">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>关于</span>
+          </button>
+        </div>
       </nav>
 
       <!-- Left Drawer Panels -->
@@ -125,7 +133,7 @@
         <!-- 1. Stickers Panel -->
         <div class="drawer-tab-pane" id="pane-stickers">
           <div class="drawer-header">
-            <span class="drawer-title">ZZZ 表情贴图 (236)</span>
+            <span class="drawer-title">ZZZ 表情贴画</span>
             <span style="font-size: 11px; color: var(--text-muted);">点击或拖拽添加</span>
           </div>
           <div class="drawer-content">
@@ -153,80 +161,60 @@
             <span style="font-size: 11px; color: var(--text-muted);">点击预设快速置入</span>
           </div>
           <div class="drawer-content">
-            <!-- Group 1: Add Custom Text -->
-            <div class="inspector-group">
-              <div class="inspector-group-title">
-                <div class="title-left">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  <span>创建自定义文本</span>
-                </div>
-              </div>
-              <button id="btn-add-custom-text" class="btn btn-primary" style="width: 100%; height: 38px; font-weight: 600; font-size: 13.5px; gap: 8px;">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                添加新文字图层
-              </button>
-              <span style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">创建后可在右侧属性栏精细调整描边、网点阴影与底色</span>
-            </div>
+            <button class="btn btn-default" id="btn-add-custom-text" style="width: 100%; font-size: 13px; font-weight: 600; padding: 10px 14px; gap: 8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              添加自定义艺术字
+            </button>
 
-            <!-- Group 2: Special & Pop-Art Titles -->
-            <div class="inspector-group">
-              <div class="inspector-group-title">
-                <div class="title-left">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                  <span>波普与特效标题预设</span>
+            <div class="text-preset-list">
+              <!-- 1. 狡兔屋波普网点标题 -->
+              <div class="text-preset-card" data-preset="comic-pop" draggable="true" style="border-left: 3px solid #38bdf8; background: #fafafa;">
+                <div style="font-size: 14px; font-weight: 900; color: #ffffff; -webkit-text-stroke: 1.2px #000000; text-shadow: 3px 3px 0 #334155; letter-spacing: 0.5px; line-height: 1.3;">
+                  「 世界全剧终，欢迎来到新艾利都 」
                 </div>
+                <span style="font-size: 11px; color: var(--text-muted);">波普网点阴影 · 粗黑描边白字</span>
               </div>
-              <div class="text-preset-list">
-                <div class="text-preset-card" data-preset="comic-pop" style="border-left: 3px solid #38bdf8; background: #fafafa;">
-                  <div style="font-size: 16px; font-weight: 900; color: #ffffff; -webkit-text-stroke: 1.5px #000000; text-shadow: 3px 3px 0 #334155; letter-spacing: 0.5px;">
-                    💥 狡兔屋波普网点大标题
-                  </div>
-                  <span style="font-size: 11px; color: var(--text-muted);">白字 + 粗黑描边 + 灰色美漫网点阴影</span>
-                </div>
-                <div class="text-preset-card" data-preset="neon" style="border-left: 3px solid #818cf8; background: #fafafa;">
-                  <span style="font-size: 16px; font-weight: 900; color: #ffffff; text-shadow: 0 0 8px #38bdf8; background: #0f172a; padding: 4px 8px; border-radius: 6px; width: fit-content;">⚡ 赛博霓虹发光字</span>
-                  <span style="font-size: 11px; color: var(--text-muted);">带有高亮霓虹外发光特效</span>
-                </div>
-              </div>
-            </div>
 
-            <!-- Group 3: Regular Titles & Subtitles -->
-            <div class="inspector-group">
-              <div class="inspector-group-title">
-                <div class="title-left">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
-                  <span>经典标题与排版预设</span>
+              <!-- 2. 赛博霓虹发光字 -->
+              <div class="text-preset-card" data-preset="neon" draggable="true" style="border-left: 3px solid #818cf8; background: #09090b;">
+                <div style="font-size: 13.5px; font-weight: 900; color: #ffffff; -webkit-text-stroke: 0.5px #0284c7; text-shadow: 0 0 10px #38bdf8, 0 0 18px #0284c7; line-height: 1.3;">
+                  「 世界全剧终，欢迎来到新艾利都 」
                 </div>
+                <span style="font-size: 11px; color: #94a3b8;">赛博霓虹发光 · 极光青蓝外发光</span>
               </div>
-              <div class="text-preset-list">
-                <div class="text-preset-card" data-preset="main-title">
-                  <span style="font-size: 18px; font-weight: 900; color: #0f172a;">海报大标题</span>
-                  <span style="font-size: 11px; color: var(--text-muted);">适合醒目的主视觉标题</span>
-                </div>
-                <div class="text-preset-card" data-preset="subtitle">
-                  <span style="font-size: 14.5px; font-weight: 600; color: #475569;">副标题 / 补充说明</span>
-                  <span style="font-size: 11px; color: var(--text-muted);">适合描述性副标题与活动时间</span>
-                </div>
-              </div>
-            </div>
 
-            <!-- Group 4: Badges & Quotes -->
-            <div class="inspector-group no-border">
-              <div class="inspector-group-title">
-                <div class="title-left">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                  <span>胶囊标签与角色金句</span>
+              <!-- 3. 海报大标题 -->
+              <div class="text-preset-card" data-preset="main-title" draggable="true">
+                <div style="font-size: 15px; font-weight: 900; color: #0f172a; line-height: 1.3;">
+                  「 世界全剧终，欢迎来到新艾利都 」
                 </div>
+                <span style="font-size: 11px; color: var(--text-muted);">醒目海报大标题 · 特粗黑体</span>
               </div>
-              <div class="text-preset-list">
-                <div class="text-preset-card" data-preset="badge">
-                  <span style="font-size: 13px; font-weight: 700; color: #e11d48; background: #ffe4e6; padding: 4px 10px; border-radius: 12px; display: inline-block; width: fit-content;">✨ 元气推荐标签</span>
-                  <span style="font-size: 11px; color: var(--text-muted);">圆角胶囊底色小徽章</span>
+
+              <!-- 4. 副标题 / 补充说明 -->
+              <div class="text-preset-card" data-preset="subtitle" draggable="true">
+                <div style="font-size: 13px; font-weight: 600; color: #475569; line-height: 1.3;">
+                  「 世界全剧终，欢迎来到新艾利都 」
                 </div>
-                <div class="text-preset-card" data-preset="quote">
-                  <span style="font-size: 14px; font-style: italic; color: #334155;">「 羁绊与守护，永不褪色 」</span>
-                  <span style="font-size: 11px; color: var(--text-muted);">经典台词、引述名言与金句</span>
+                <span style="font-size: 11px; color: var(--text-muted);">副标题说明 · 中灰字重</span>
+              </div>
+
+              <!-- 5. 胶囊标签徽章 -->
+              <div class="text-preset-card" data-preset="badge" draggable="true">
+                <div>
+                  <span style="font-size: 11.5px; font-weight: 700; color: #e11d48; background: #ffe4e6; padding: 4px 10px; border-radius: 9999px; display: inline-block; line-height: 1.3;">
+                    「 世界全剧终，欢迎来到新艾利都 」
+                  </span>
                 </div>
+                <span style="font-size: 11px; color: var(--text-muted);">圆角胶囊底色小徽章</span>
+              </div>
+
+              <!-- 6. 经典台词与金句 -->
+              <div class="text-preset-card" data-preset="quote" draggable="true">
+                <div style="font-size: 13px; font-style: italic; color: #334155; line-height: 1.3;">
+                  「 世界全剧终，欢迎来到新艾利都 」
+                </div>
+                <span style="font-size: 11px; color: var(--text-muted);">经典台词与角色金句</span>
               </div>
             </div>
           </div>
@@ -292,10 +280,10 @@
                   <div class="color-swatch" style="background: #c084fc;" data-color="#c084fc"></div>
                 </div>
 
-                <div class="form-group" style="margin-top: 8px;">
+                <div class="form-group">
                   <label class="form-label">自定义背景底色</label>
                   <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="color" id="input-bg-color" value="#f8fafc" style="width: 44px; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                    <input type="color" id="input-bg-color" value="#f8fafc" style="width: 44px; height: 36px; cursor: pointer;">
                     <input type="text" id="input-bg-color-hex" value="#f8fafc" class="form-input" style="flex: 1;">
                   </div>
                 </div>
@@ -313,7 +301,7 @@
                   <div class="color-swatch" style="background: linear-gradient(135deg, #ede9fe, #fae8ff);" data-grad="#ede9fe,#fae8ff" title="梦幻极光紫"></div>
                 </div>
 
-                <div class="section-label" style="margin-top: 8px;">预设深色/暗调渐变 (6款)</div>
+                <div class="section-label">预设深色/暗调渐变 (6款)</div>
                 <div class="color-palette-grid">
                   <div class="color-swatch" style="background: linear-gradient(135deg, #0f172a, #1e293b);" data-grad="#0f172a,#1e293b" title="深邃星空黑"></div>
                   <div class="color-swatch" style="background: linear-gradient(135deg, #09090b, #312e81);" data-grad="#09090b,#312e81" title="赛博暗霓虹"></div>
@@ -323,14 +311,14 @@
                   <div class="color-swatch" style="background: linear-gradient(135deg, #18181b, #27272a);" data-grad="#18181b,#27272a" title="银翼暗金属"></div>
                 </div>
 
-                <div class="form-row" style="margin-top: 8px;">
+                <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">渐变起始色</label>
-                    <input type="color" id="input-grad-color1" value="#e0e7ff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-grad-color1" value="#e0e7ff">
                   </div>
                   <div class="form-group">
                     <label class="form-label">渐变结束色</label>
-                    <input type="color" id="input-grad-color2" value="#fce7f3" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-grad-color2" value="#fce7f3">
                   </div>
                 </div>
 
@@ -345,63 +333,70 @@
 
               <!-- 3. Pop-Art Polka Dots Settings -->
               <div id="bg-popdots-settings" class="bg-section" style="display: none;">
-                <div class="section-label">预设经典波普风格 (6款)</div>
+                <div class="section-label">精选漫画半色调与波普 (6款)</div>
                 <div class="color-palette-grid">
-                  <div class="color-swatch pop-preset-swatch" style="background: #fbbf24; border: 2px solid #000; position: relative; overflow: hidden;" data-popbg="#fbbf24" data-popdot="#18181b" data-poppattern="staggered" data-popsize="10" data-popspacing="36" title="狡兔屋经典黑黄波普">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#18181b 3px, transparent 3px); background-size: 10px 10px;"></div>
+                  <!-- 1. 复古美漫微粒网点 -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #ffffff; border: 2px solid #0f172a; position: relative; overflow: hidden;" data-popbg="#ffffff" data-popdot="#0f172a" data-poppattern="micro" data-popsize="3" data-popspacing="10" title="复古美漫微粒网点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#0f172a 1.8px, transparent 1.8px); background-size: 7px 7px;"></div>
                   </div>
-                  <div class="color-swatch pop-preset-swatch" style="background: #09090b; border: 2px solid #22c55e; position: relative; overflow: hidden;" data-popbg="#09090b" data-popdot="#22c55e" data-poppattern="staggered" data-popsize="8" data-popspacing="30" title="赛博荧光绿点">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#22c55e 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  <!-- 2. 空洞中心暗影放射 -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #18181b; border: 2px solid #3f3f46; position: relative; overflow: hidden;" data-popbg="#18181b" data-popdot="#3f3f46" data-poppattern="radial" data-popsize="10" data-popspacing="28" title="空洞暗影放射半色调">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#3f3f46 2.5px, transparent 2.5px); background-size: 11px 11px;"></div>
                   </div>
-                  <div class="color-swatch pop-preset-swatch" style="background: #f43f5e; border: 2px solid #fff; position: relative; overflow: hidden;" data-popbg="#f43f5e" data-popdot="#ffffff" data-poppattern="staggered" data-popsize="9" data-popspacing="32" title="元气粉红白点">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#ffffff 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  <!-- 3. 街头漫画半色调阴影 (渐变衰减点阵) -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #f8fafc; border: 2px solid #cbd5e1; position: relative; overflow: hidden;" data-popbg="#f8fafc" data-popdot="#475569" data-poppattern="gradient-v" data-popsize="7" data-popspacing="18" title="街头漫画渐变阴影点阵">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(71,85,105,0.05) 0%, rgba(71,85,105,0.45) 100%);"></div>
                   </div>
-                  <div class="color-swatch pop-preset-swatch" style="background: #0284c7; border: 2px solid #fff; position: relative; overflow: hidden;" data-popbg="#0284c7" data-popdot="#ffffff" data-poppattern="staggered" data-popsize="9" data-popspacing="32" title="街头青蓝白点">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#ffffff 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  <!-- 4. 狡兔屋街头暖砂炭黑 -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #fef3c7; border: 2px solid #1c1917; position: relative; overflow: hidden;" data-popbg="#fef3c7" data-popdot="#1c1917" data-poppattern="staggered" data-popsize="4" data-popspacing="16" title="狡兔屋街头暖砂炭黑">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#1c1917 2px, transparent 2px); background-size: 9px 9px;"></div>
                   </div>
-                  <div class="color-swatch pop-preset-swatch" style="background: #ffffff; border: 2px solid #000; position: relative; overflow: hidden;" data-popbg="#ffffff" data-popdot="#0f172a" data-poppattern="micro" data-popsize="3" data-popspacing="12" title="复古美漫黑白网点">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#0f172a 2px, transparent 2px); background-size: 8px 8px;"></div>
+                  <!-- 5. 对空六课机能玄青网屏 -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #0f172a; border: 2px solid #334155; position: relative; overflow: hidden;" data-popbg="#0f172a" data-popdot="#334155" data-poppattern="micro" data-popsize="3" data-popspacing="11" title="对空六课玄青网屏">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#334155 1.8px, transparent 1.8px); background-size: 7px 7px;"></div>
                   </div>
-                  <div class="color-swatch pop-preset-swatch" style="background: #180b2c; border: 2px solid #c084fc; position: relative; overflow: hidden;" data-popbg="#180b2c" data-popdot="#c084fc" data-poppattern="radial" data-popsize="12" data-popspacing="36" title="虚空暗紫放射波点">
-                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#c084fc 3px, transparent 3px); background-size: 12px 12px;"></div>
+                  <!-- 6. 维多利亚黑白精密点阵 -->
+                  <div class="color-swatch pop-preset-swatch" style="background: #f4f4f5; border: 2px solid #27272a; position: relative; overflow: hidden;" data-popbg="#f4f4f5" data-popdot="#27272a" data-poppattern="grid" data-popsize="3" data-popspacing="14" title="维多利亚精密黑白网格">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#27272a 1.8px, transparent 1.8px); background-size: 8px 8px;"></div>
                   </div>
                 </div>
 
-                <div class="form-row" style="margin-top: 8px;">
+                <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">背景底色</label>
-                    <input type="color" id="input-pop-bg-color" value="#fbbf24" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-pop-bg-color" value="#ffffff">
                   </div>
                   <div class="form-group">
                     <label class="form-label">波点颜色</label>
-                    <input type="color" id="input-pop-dot-color" value="#18181b" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-pop-dot-color" value="#0f172a">
                   </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 4px;">
+                <div class="form-group">
                   <label class="form-label">波点排布模式</label>
                   <select id="select-pop-pattern" class="form-select">
-                    <option value="staggered">⚡ 交错蜂窝美漫波点 (Staggered Pop)</option>
-                    <option value="grid">▦ 正交坐标矩阵点阵 (Grid Matrix)</option>
-                    <option value="radial">💥 中心放射半色调 (Radial Burst)</option>
-                    <option value="micro">📰 报纸微粒网屏 (Micro Halftone)</option>
+                    <option value="micro">报纸微粒网屏</option>
+                    <option value="radial">中心放射半色调</option>
+                    <option value="gradient-v">渐变漫画阴影点阵</option>
+                    <option value="staggered">60° 蜂窝交错美漫点</option>
+                    <option value="grid">正交坐标矩阵点阵</option>
                   </select>
                 </div>
 
-                <div class="slider-group" style="margin-top: 6px;">
+                <div class="slider-group">
                   <div class="slider-header">
                     <span>波点大小 (半径)</span>
-                    <span id="label-pop-dot-size">10 px</span>
+                    <span id="label-pop-dot-size">3 px</span>
                   </div>
-                  <input type="range" id="slider-pop-dot-size" class="slider-control" min="2" max="40" value="10">
+                  <input type="range" id="slider-pop-dot-size" class="slider-control" min="1" max="30" value="3">
                 </div>
 
-                <div class="slider-group" style="margin-top: 6px;">
+                <div class="slider-group">
                   <div class="slider-header">
                     <span>波点间距密度</span>
-                    <span id="label-pop-dot-spacing">36 px</span>
+                    <span id="label-pop-dot-spacing">10 px</span>
                   </div>
-                  <input type="range" id="slider-pop-dot-spacing" class="slider-control" min="10" max="90" value="36">
+                  <input type="range" id="slider-pop-dot-spacing" class="slider-control" min="6" max="60" value="10">
                 </div>
               </div>
 
@@ -410,7 +405,6 @@
                 <div class="section-label">预设胶片与分镜画框 (4款)</div>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
                   <button class="btn btn-default film-preset-btn active" data-filmstyle="cinema-h" style="padding: 10px; font-size: 11px; flex-direction: column; height: auto;">
-                    <span style="font-size: 16px;">🎞️</span>
                     <span style="font-weight: 600;">35mm 电影胶卷</span>
                     <span style="font-size: 10px; color: var(--text-muted);">上下齿孔与片号</span>
                   </button>
@@ -431,18 +425,18 @@
                   </button>
                 </div>
 
-                <div class="form-row" style="margin-top: 8px;">
+                <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">胶片框底色</label>
-                    <input type="color" id="input-film-frame-color" value="#09090b" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-film-frame-color" value="#09090b">
                   </div>
                   <div class="form-group">
                     <label class="form-label">内衬画面颜色</label>
-                    <input type="color" id="input-film-inner-color" value="#ffffff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                    <input type="color" id="input-film-inner-color" value="#ffffff">
                   </div>
                 </div>
 
-                <div class="form-row" style="margin-top: 4px;">
+                <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">胶卷文字标识</label>
                     <input type="text" id="input-film-label" class="form-input" value="NEW ERIDU FILM 500T" style="height: 32px; font-size: 11px;">
@@ -453,7 +447,7 @@
                   </div>
                 </div>
 
-                <div class="slider-group" style="margin-top: 6px;">
+                <div class="slider-group">
                   <div class="slider-header">
                     <span>胶卷边框厚度</span>
                     <span id="label-film-thickness">90 px</span>
@@ -471,7 +465,7 @@
                 </button>
                 <input type="file" id="file-bg-img" accept="image/*" style="display: none;">
                 
-                <div class="form-group" style="margin-top: 8px;">
+                <div class="form-group">
                   <label class="form-label">填充方式</label>
                   <select id="select-bg-fit" class="form-select">
                     <option value="cover">铺满裁剪 (Cover)</option>
@@ -480,19 +474,32 @@
                   </select>
                 </div>
 
-                <div class="section-label" style="margin-top: 12px;">绝区零官方背景/壁纸 (28款)</div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 240px; overflow-y: auto; padding-right: 4px;" id="bg-preset-grid">
-                  <!-- Rendered dynamically -->
+                <!-- Image Dedicated Blur & Overlay -->
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <span>图片高斯模糊 (Blur)</span>
+                    <span id="label-bg-blur" style="font-weight: 600; color: var(--accent-primary);">0 px</span>
+                  </div>
+                  <input type="range" id="slider-bg-blur" class="slider-control" min="0" max="40" value="0">
+                  <span style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">对背景图片施加实时高斯模糊，让前景贴图和文字更醒目</span>
                 </div>
 
-                <button id="btn-remove-bg-img" class="btn btn-ghost" style="color: var(--accent-danger); font-size: 12px; margin-top: 8px; width: 100%;">
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <span>图片暗角 / 遮罩压暗</span>
+                    <span id="label-bg-overlay">0%</span>
+                  </div>
+                  <input type="range" id="slider-bg-overlay" class="slider-control" min="0" max="80" value="0">
+                </div>
+
+                <button id="btn-remove-bg-img" class="btn btn-ghost" style="color: var(--accent-danger); font-size: 12px; width: 100%;">
                   清除背景图片 (恢复纯色)
                 </button>
               </div>
             </div>
 
             <!-- Group 3: Universal Background Decoration Overlay -->
-            <div class="inspector-group">
+            <div class="inspector-group no-border">
               <div class="inspector-group-title">
                 <div class="title-left">
                   <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -504,12 +511,12 @@
               <div class="form-group">
                 <select id="select-bg-decoration-type" class="form-select">
                   <option value="none">无装饰 (保持纯净)</option>
-                  <option value="speedlines">💥 美漫动作放射速度线 (Speedlines)</option>
-                  <option value="hazard">⚠️ 绝区零街头警戒斜纹 (Hazard Stripes)</option>
-                  <option value="cybergrid">🌐 赛博机能方格网 (Cyber Matrix)</option>
-                  <option value="scanlines">📺 复古电视扫描线 (CRT Scanlines)</option>
-                  <option value="screentone">🖤 密集漫画网点纹理 (Manga Screentone)</option>
-                  <option value="vignette">🌑 电影级暗角黑边 (Cinema Vignette)</option>
+                  <option value="speedlines">美漫动作放射速度线 (Speedlines)</option>
+                  <option value="hazard">绝区零街头警戒斜纹 (Hazard Stripes)</option>
+                  <option value="cybergrid">赛博机能方格网 (Cyber Matrix)</option>
+                  <option value="scanlines">复古电视扫描线 (CRT Scanlines)</option>
+                  <option value="screentone">密集漫画网点纹理 (Manga Screentone)</option>
+                  <option value="vignette">电影级暗角黑边 (Cinema Vignette)</option>
                 </select>
               </div>
 
@@ -527,33 +534,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Group 4: Blur & Filter Dimming -->
-            <div class="inspector-group no-border">
-              <div class="inspector-group-title">
-                <div class="title-left">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>
-                  <span>高斯模糊与暗角调光</span>
-                </div>
-              </div>
-
-              <div class="slider-group">
-                <div class="slider-header">
-                  <span>✨ 高斯模糊强度 (Blur)</span>
-                  <span id="label-bg-blur" style="font-weight: 600; color: var(--accent-primary);">0 px</span>
-                </div>
-                <input type="range" id="slider-bg-blur" class="slider-control" min="0" max="40" value="0">
-                <span style="font-size: 11px; color: var(--text-muted);">对背景施加实时高斯模糊，让前景文字更醒目</span>
-              </div>
-
-              <div class="slider-group" style="margin-top: 4px;">
-                <div class="slider-header">
-                  <span>背景暗角 / 亮度调节</span>
-                  <span id="label-bg-overlay">0%</span>
-                </div>
-                <input type="range" id="slider-bg-overlay" class="slider-control" min="0" max="80" value="0">
               </div>
             </div>
           </div>
@@ -598,6 +578,33 @@
         <div id="ruler-corner" class="ruler-corner" title="像素标尺 (px)">px</div>
         <canvas id="ruler-horizontal" class="canvas-ruler ruler-h"></canvas>
         <canvas id="ruler-vertical" class="canvas-ruler ruler-v"></canvas>
+
+        <!-- Fixed Top Contextual Action Bar (Figma-style Stable Capsule) -->
+        <div class="canvas-top-context-bar" id="canvas-top-context-bar" style="display: none;">
+          <div class="context-bar-info" id="context-bar-info">
+            <span class="context-bar-tag" id="context-bar-type">贴画组件</span>
+            <span class="context-bar-name" id="context-bar-name">已选组件</span>
+          </div>
+          <div class="divider-v" style="height: 16px; margin: 0 4px;"></div>
+          <div class="context-bar-actions">
+            <button class="context-btn" id="ctx-btn-top" title="置于顶层">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/><line x1="6" y1="5" x2="18" y2="5"/></svg>
+              置顶
+            </button>
+            <button class="context-btn" id="ctx-btn-bottom" title="置于底层">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"/><line x1="6" y1="19" x2="18" y2="19"/></svg>
+              置底
+            </button>
+            <button class="context-btn" id="ctx-btn-dup" title="复制组件 (Ctrl+D)">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              复制
+            </button>
+            <button class="context-btn btn-danger" id="ctx-btn-del" title="删除组件 (Del)">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              删除
+            </button>
+          </div>
+        </div>
 
         <div class="canvas-artboard-wrapper" id="artboard-wrapper">
           <canvas id="main-canvas" width="1920" height="1080"></canvas>
@@ -660,15 +667,15 @@
       <!-- Right Property & Layer Sidebar -->
       <aside class="prop-sidebar">
         <div class="prop-tabs">
-          <button class="prop-tab-btn active" id="tab-btn-properties">图层属性</button>
-          <button class="prop-tab-btn" id="tab-btn-layers">图层列表 (<span id="layer-count-badge">0</span>)</button>
+          <button class="prop-tab-btn active" id="tab-btn-properties">贴画属性</button>
+          <button class="prop-tab-btn" id="tab-btn-layers">贴画列表 (<span id="layer-count-badge">0</span>)</button>
         </div>
 
         <!-- 1. Properties Inspector Tab -->
         <div class="prop-content" id="prop-pane-inspector">
           <div id="no-selection-hint" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 10px;">
             <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="1.5" fill="none" style="margin-bottom: 8px; opacity: 0.5;"><path d="M15 15l6 6m-11-4a7 7 0 110-14 7 7 0 010 14z"/></svg>
-            <div>请在画布中选中一个图层</div>
+            <div>请在画布中选中贴画或文字</div>
             <div style="font-size: 11px; margin-top: 4px;">或从左侧添加贴图/文字</div>
           </div>
 
@@ -681,12 +688,18 @@
                   <span>尺寸与基础变换</span>
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
+              <div class="dimension-row" style="display: flex; align-items: flex-end; gap: 6px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
                   <label class="form-label">宽度 (W px)</label>
                   <input type="number" id="prop-width" class="form-input" min="10">
                 </div>
-                <div class="form-group">
+                <button type="button" id="btn-lock-aspect-ratio" class="aspect-lock-btn active" title="锁定长宽比 (点击解锁)" style="margin-bottom: 2px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                </button>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
                   <label class="form-label">高度 (H px)</label>
                   <input type="number" id="prop-height" class="form-input" min="10">
                 </div>
@@ -797,10 +810,10 @@
                   <button class="btn-toggle" id="btn-stroke-12">粗 12px</button>
                 </div>
 
-                <div class="form-row" style="margin-top: 4px;">
+                <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">底色胶囊填充</label>
-                    <input type="color" id="prop-text-bg-fill" value="#ffffff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                    <input type="color" id="prop-text-bg-fill" value="#ffffff" style="cursor: pointer;">
                   </div>
                   <div class="form-group">
                     <label class="form-label">底色状态切换</label>
@@ -823,9 +836,9 @@
                   <label class="form-label">阴影渲染模式</label>
                   <select id="prop-text-shadow-type" class="form-select">
                     <option value="none">无阴影 (纯净)</option>
-                    <option value="halftone">⚡ 波普漫画灰色网点阴影 (Halftone)</option>
-                    <option value="solid">🏷️ 实体黑边硬投影 (Solid Offset)</option>
-                    <option value="glow">✨ 霓虹发光光晕 (Neon Glow)</option>
+                    <option value="halftone">波普漫画灰色网点阴影 (Halftone)</option>
+                    <option value="solid">实体黑边硬投影 (Solid Offset)</option>
+                    <option value="glow">霓虹发光光晕 (Neon Glow)</option>
                   </select>
                 </div>
 
@@ -833,7 +846,7 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label class="form-label">阴影/网点颜色</label>
-                      <input type="color" id="prop-text-shadow-color" value="#334155" style="width: 100%; height: 32px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                      <input type="color" id="prop-text-shadow-color" value="#334155" style="width: 100%; height: 32px; cursor: pointer;">
                     </div>
                     <div class="form-group" id="group-halftone-type">
                       <label class="form-label">网点纹理样式</label>
@@ -845,7 +858,7 @@
                     </div>
                   </div>
 
-                  <div class="form-group" style="margin-top: 4px;">
+                  <div class="form-group">
                     <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-secondary); margin-bottom: 2px;">
                       <span>阴影偏移距离</span>
                       <span id="label-text-shadow-offset" style="font-weight: 600; color: var(--accent-primary);">8 px</span>
@@ -853,7 +866,7 @@
                     <input type="range" id="slider-text-shadow-offset" class="slider-control" min="2" max="30" value="8">
                   </div>
 
-                  <div class="form-group" style="margin-top: 4px;" id="group-halftone-density">
+                  <div class="form-group" id="group-halftone-density">
                     <label class="form-label">网点密度与颗粒</label>
                     <div class="button-group-row">
                       <button class="btn-toggle" id="btn-halftone-dense" data-spacing="4" data-size="1.5">密集 4px</button>
@@ -864,12 +877,12 @@
                 </div>
 
                 <!-- Quick Comic Style Presets -->
-                <div style="margin-top: 4px; display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
                   <button id="btn-preset-comic-hares" class="btn btn-default" style="flex: 1; font-size: 11px; padding: 7px 6px; background: rgba(56,189,248,0.08); border-color: var(--accent-primary);" title="白字 + 8px黑描边 + 8px灰色网点阴影 (狡兔屋原版)">
-                    💥 狡兔屋波普风
+                    狡兔屋波普风
                   </button>
                   <button id="btn-preset-cyber-glow" class="btn btn-default" style="flex: 1; font-size: 11px; padding: 7px 6px;" title="白字 + 霓虹青蓝发光">
-                    ⚡ 赛博发光
+                    赛博发光
                   </button>
                 </div>
               </div>
@@ -899,12 +912,32 @@
 
 
 
+            <!-- 5. Layer Hierarchy Group -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <span>贴画层级调整</span>
+                </div>
+              </div>
+              <div class="form-row">
+                <button id="btn-prop-bring-front" class="btn btn-default" style="font-size: 12px; padding: 8px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/><line x1="6" y1="5" x2="18" y2="5"/></svg>
+                  置于顶层
+                </button>
+                <button id="btn-prop-send-back" class="btn btn-default" style="font-size: 12px; padding: 8px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"/><line x1="6" y1="19" x2="18" y2="19"/></svg>
+                  置于底层
+                </button>
+              </div>
+            </div>
+
             <!-- 6. Layer Action Buttons Group -->
-            <div class="inspector-group no-border" style="padding-top: 16px;">
+            <div class="inspector-group no-border">
               <div style="display: flex; gap: 10px;">
                 <button id="btn-prop-duplicate" class="btn btn-default" style="flex: 1; font-size: 12.5px; padding: 8px;">
                   <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                  复制图层
+                  复制贴画
                 </button>
                 <button id="btn-prop-delete" class="btn btn-default" style="color: var(--accent-danger); font-size: 12.5px; padding: 8px 14px;">
                   <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -918,8 +951,13 @@
         <!-- 2. Layer List Tab -->
         <div class="prop-content" id="prop-pane-layers" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="section-label">图层层级 (从上至下)</span>
-            <div style="display: flex; gap: 4px;">
+            <span class="section-label">贴画层级 (从上至下)</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button id="btn-lock-all-layers" class="btn btn-default" title="锁定所有贴画 (防误触拖动)" style="padding: 3px 8px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; gap: 4px;">
+                <span id="icon-lock-all" style="display: inline-flex; align-items: center;"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span id="label-lock-all">锁定全部</span>
+              </button>
+              <div class="divider-v" style="height: 14px; margin: 0 2px;"></div>
               <button id="btn-layer-up" class="floating-btn" title="上移一层"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/></svg></button>
               <button id="btn-layer-down" class="floating-btn" title="下移一层"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"/></svg></button>
             </div>
@@ -940,27 +978,27 @@
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
       <button class="text-preset-card size-opt-card" data-w="1920" data-h="1080" data-name="16:9 标准横版">
-        <div style="font-weight: 600;">🖥️ 16:9 标准横版 / 宽屏画幅</div>
+        <div style="font-weight: 600;">16:9 标准横版 / 宽屏画幅</div>
         <div style="font-size: 12px; color: var(--text-muted);">1920 × 1080 (16:9)</div>
       </button>
       <button class="text-preset-card size-opt-card" data-w="1600" data-h="1200" data-name="4:3 经典横版">
-        <div style="font-weight: 600;">🎞️ 4:3 经典横版 / 复古画幅</div>
+        <div style="font-weight: 600;">4:3 经典横版 / 复古画幅</div>
         <div style="font-size: 12px; color: var(--text-muted);">1600 × 1200 (4:3)</div>
       </button>
       <button class="text-preset-card size-opt-card" data-w="1080" data-h="1440" data-name="3:4 经典竖版">
-        <div style="font-weight: 600;">📄 3:4 经典竖版 / 纵向海报</div>
+        <div style="font-weight: 600;">3:4 经典竖版 / 纵向海报</div>
         <div style="font-size: 12px; color: var(--text-muted);">1080 × 1440 (3:4)</div>
       </button>
       <button class="text-preset-card size-opt-card" data-w="1080" data-h="1080" data-name="1:1 正方画幅">
-        <div style="font-weight: 600;">🟩 1:1 正方画幅 / 方形配图</div>
+        <div style="font-weight: 600;">1:1 正方画幅 / 方形配图</div>
         <div style="font-size: 12px; color: var(--text-muted);">1080 × 1080 (1:1)</div>
       </button>
       <button class="text-preset-card size-opt-card" data-w="1080" data-h="1920" data-name="9:16 满屏竖版">
-        <div style="font-weight: 600;">📱 9:16 满屏竖版 / 纵向壁纸</div>
+        <div style="font-weight: 600;">9:16 满屏竖版 / 纵向壁纸</div>
         <div style="font-size: 12px; color: var(--text-muted);">1080 × 1920 (9:16)</div>
       </button>
       <button class="text-preset-card size-opt-card" data-w="1920" data-h="817" data-name="2.35:1 宽荧幕">
-        <div style="font-weight: 600;">🎬 2.35:1 宽荧幕 / 电影横幅</div>
+        <div style="font-weight: 600;">2.35:1 宽荧幕 / 电影横幅</div>
         <div style="font-size: 12px; color: var(--text-muted);">1920 × 817 (2.35:1)</div>
       </button>
 
@@ -1052,6 +1090,82 @@
 
       <div class="modal-footer" style="margin-top: 4px;">
         <button class="btn btn-default" onclick="document.getElementById('modal-project').close()">关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Dedicated About Information Modal -->
+  <dialog id="modal-about" class="custom-modal" style="max-width: 520px;">
+    <div class="modal-header">
+      <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>关于 ZZZ Poster Studio</span>
+      </div>
+      <button class="floating-btn" onclick="document.getElementById('modal-about').close()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <!-- Brand & Version Banner -->
+      <div style="display: flex; align-items: center; gap: 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-md); padding: 14px 16px;">
+        <img src="./icons/icon-192.png" alt="ZZZ Logo" style="width: 46px; height: 46px; border-radius: 10px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);">
+        <div>
+          <div style="font-weight: 800; font-size: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+            <span>ZZZ Poster Studio</span>
+            <span style="font-size: 11px; font-weight: 700; background: var(--accent-primary); color: #ffffff; padding: 2px 8px; border-radius: 9999px;">v1.0.0</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">基于《绝区零》官方贴画的海报、黑板报与拼贴剪报创作小工具</div>
+        </div>
+      </div>
+
+      <!-- 4 Grid Project Info Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+        <!-- Card 1: Open Source Repo & Author -->
+        <a href="https://github.com/sleeplessai/zzz-poster-studio" target="_blank" rel="noopener" style="background: var(--bg-hover); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; transition: all var(--transition-fast); color: inherit;" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-light)'">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between;">
+              <span>📦 开源仓库</span>
+              <span style="font-size: 10px; color: var(--accent-primary);">GitHub ↗</span>
+            </div>
+            <div style="color: var(--text-secondary); font-weight: 600; font-size: 11px;">作者：爱打电动的柚蜜小姐</div>
+            <div style="color: var(--text-muted); font-size: 10.5px; line-height: 1.35; margin-top: 3px;">欢迎 Star ⭐、贡献二创脑洞与交流分享！</div>
+          </div>
+        </a>
+
+        <!-- Card 2: Core Features -->
+        <div style="background: var(--bg-hover); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">🎨 主要功能</div>
+            <div style="color: var(--text-muted); font-size: 10.5px; line-height: 1.4; margin-top: 3px;">使用官方高清贴图素材，轻松自由创作潮流游戏海报、概念拼贴画与视觉简报。</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Architecture & AI Development -->
+        <div style="background: var(--bg-hover); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">⚡ 技术架构</div>
+            <div style="color: var(--text-secondary); font-weight: 600; font-size: 11px;">Vanilla JS + Canvas + PWA</div>
+            <div style="color: var(--text-muted); font-size: 10.5px; line-height: 1.35; margin-top: 3px;">使用 Antigravity 与 Gemini 3.7 Flash 模型协同开发完成。</div>
+          </div>
+        </div>
+
+        <!-- Card 4: Open Source License -->
+        <div style="background: var(--bg-hover); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">📄 开源许可</div>
+            <div style="color: var(--text-secondary); font-weight: 600; font-size: 11px;">Apache License 2.0</div>
+            <div style="color: var(--text-muted); font-size: 10.5px; line-height: 1.35; margin-top: 3px;">采用 Apache 2.0 开源协议，支持自由修改、衍生创作与分发。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copyright & Disclaimer -->
+      <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+        <div style="font-weight: 700; color: var(--text-secondary); margin-bottom: 2px;">📌 版权与免责声明</div>
+        本项目包含的《绝区零》(Zenless Zone Zero) 相关角色美术、官方表情、图标等知识产权均归属于上海米哈游网络科技股份有限公司 (miHoYo)。本项目为非商业性创作工具，仅供绝区零玩家交流与个人二创学习使用。
+      </div>
+
+      <div class="modal-footer" style="margin-top: 2px; display: flex; justify-content: flex-end; align-items: center;">
+        <button class="btn btn-primary" onclick="document.getElementById('modal-about').close()" style="padding: 6px 18px;">知道了</button>
       </div>
     </div>
   </dialog>

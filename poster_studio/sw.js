@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zzz-poster-studio-v1';
+const CACHE_NAME = 'zzz-poster-studio-v2';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -12,24 +12,23 @@ const PRECACHE_ASSETS = [
   './icons/icon-512.png'
 ];
 
-// Install Event - Precache core app shell
+// Install Event - Precache core app shell & skip waiting immediately
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching offline pages & assets');
       return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate Event - Clean up old cache versions
+// Activate Event - Clean up old cache versions immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('[ServiceWorker] Removing old cache', key);
             return caches.delete(key);
           }
         })
@@ -38,45 +37,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Stale-While-Revalidate / Cache First with fallback
+// Fetch Event - Network First (Always fetch fresh code, fallback to cache when offline)
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Ignore chrome-extension or other non-http schemes
+  // Ignore non-http schemes
   if (!requestUrl.protocol.startsWith('http')) return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached, while updating cache in background for emojis/assets
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse.clone());
-            });
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-
-      // Not in cache, fetch from network and cache
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic' && networkResponse.type !== 'cors') {
-          return networkResponse;
-        }
-
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-
-        return networkResponse;
-      }).catch((err) => {
-        // Fallback for document navigation
+      }
+      return networkResponse;
+    }).catch(() => {
+      // Offline fallback from cache
+      return caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
-        throw err;
+        return Promise.reject('Offline and asset not in cache');
       });
     })
   );

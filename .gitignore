@@ -35,3 +35,5 @@ gallery/scripts/emoji_data_preview.json
 # Local Exports & Test Output
 exports/
 test_output/
+dist/
+releases/

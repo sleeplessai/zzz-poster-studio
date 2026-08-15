@@ -1,130 +1,122 @@
 # 🎨 ZZZ Poster Studio
 
 <p align="center">
-  <strong>专为《绝区零》打造的潮流海报设计工坊与表情二创视觉套件</strong><br>
-  <em>A stylish poster design studio and emoji sticker creator for Zenless Zone Zero.</em>
+  <strong>基于《绝区零》官方贴画素材与美术风格的海报、黑板报、拼贴剪报轻量创作工具</strong><br>
+  <em>A lightweight poster, scrapbook, and sticker collage creator inspired by Zenless Zone Zero.</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Platform-Web%20%7C%20PWA-38bdf8?style=flat-square" alt="Platform">
-  <img src="https://img.shields.io/badge/Schema-v2.0.0-6366f1?style=flat-square" alt="Schema">
-  <img src="https://img.shields.io/badge/Assets-230%2B%20HD%20Stickers-f43f5e?style=flat-square" alt="Assets">
+  <img src="https://img.shields.io/badge/Version-v1.0.0-6366f1?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-10b981?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Stickers-Official%20HD%20Emojis-f43f5e?style=flat-square" alt="Stickers">
+  <img src="https://img.shields.io/badge/Tech-Vanilla%20JS%20%7C%20Canvas-38bdf8?style=flat-square" alt="Tech">
 </p>
 
 ---
 
-## 📖 概览 (Overview)
+## 📖 项目简介
 
-**ZZZ Poster Studio** 是一套专为《绝区零》(Zenless Zone Zero) 创作者、二创设计同好及社区打造的纯前端海报排版与贴纸创作工坊。
+**ZZZ Poster Studio** 是一款面向《绝区零》(Zenless Zone Zero) 玩家与设计爱好者的轻量级排版与拼贴创作小工具。
 
-项目以 **海报工坊 (Canvas Editor)** 为核心，深度整合全套官方高清表情图鉴、常用规格画布预设、图层混合模式、高斯模糊与二创滤镜，支持以标准 `.zzzposter` 工程格式实现跨端无缝继续编辑与 4K 超清渲染导出。
-
----
-
-## ✨ 核心特性 (Key Features)
-
-- 🎨 **专业级海报创作工坊 (Studio Editor)**
-  - **多规格画布预设**：一键切换 16:9 横版封面、9:16 手机壁纸、1:1 正方形头像、横版 Banner 等比例。
-  - **全能图层系统**：支持表情贴纸、富文本、几何装饰图层的拖拽定位、等比缩放、自由旋转与层级编排。
-  - **视觉特效滤镜**：内置高斯模糊、色调调节、黑白漫画网点、半色调及故障风二创滤镜。
-- 🖼️ **全套官方高清图鉴 (HD Emoji Gallery)**
-  - 内置 230+ 官方高清透明底表情与贴纸，支持按角色、所属阵营、版本与特别企划实时筛选与搜索。
-  - 支持一键将图鉴表情快速投送至工坊画布进行二次设计排版。
-- 💾 **工程文件规范 (.zzzposter)**
-  - 基于确定性渲染设计，支持以 `.zzzposter` (JSON) 格式保存与导入完整工程，工程文件自包含且跨端兼容。
-- ⚡ **渐进式 Web 应用 (PWA)**
-  - 支持直接离线安装至 Windows、macOS 及移动端桌面，断网环境下依然可流畅创作。
+应用内置了官方全套高清透明底贴画素材，并参考《绝区零》独特的美漫波普、街头机能与复古胶片美术风格，让你可以自由拼贴、设计并导出属于自己的游戏海报、黑板报简报、手帐贴画与视觉卡片。
 
 ---
 
-## 🚀 快速开始 (Quick Start)
+## ✨ 主要功能
 
-### 步骤 1：克隆仓库 (Clone Repository)
+- 🖼️ **官方高清贴画图鉴**
+  - 收录自公测以来的全版本角色表情、萌系邦布以及茶百道、雷蛇 Razer 等联动特辑贴图。
+  - 支持按角色与企划分类快速检索，点击或拖拽即可直接置入画布。
+
+- 🎨 **绝区零风格化背景与装饰**
+  - **漫画半色调与波普网点**：复古美漫微网点、空洞暗影放射半色调、渐变阴影点阵与狡兔屋炭黑街头网屏。
+  - **复古画框与分镜**：35mm 电影胶卷、竖轨录像带胶片、四格漫画分镜与复古拍立得相框。
+  - **特色纹理叠加**：美漫速度线、街头警戒斜纹、赛博方格网与电视扫描线。
+
+- 📝 **文字与潮流排版**
+  - 预设波普网点大标题、赛博霓虹发光字、胶囊标签徽章与台词金句样式。
+  - 支持多行文本、自定义描边、网点投影、高斯发光与对齐调节。
+
+- 📐 **常用画幅一键切换**
+  - 内置 16:9 横版海报、9:16 手机壁纸、4:3 经典比例、1:1 正方贴画与 3:4 竖版封面。
+  - 支持辅助像素标尺、三分法/黄金分割构图网格与安全线参考。
+
+- 💾 **轻量保存与导出**
+  - 支持一键导出高清 PNG 图片与透明底成品。
+  - 支持以 `.zzzposter` 工程文件保存/载入完整草稿，纯前端本地运行，支持 PWA 安装离线使用。
+
+---
+
+## 🚀 快速启动
+
+### 🌟 推荐：使用 Python 脚本一键启动（全平台通用 · 自动打开浏览器）
+
+本项目内置了轻量级 Python 启动脚本（无任何第三方依赖，仅使用 Python 原生标准库），支持自动查找可用端口并自动拉起默认浏览器：
+
 ```bash
-git clone https://github.com/your-username/zzz-poster-studio.git
-cd zzz-poster-studio
+# 启动创作中枢门户 (Creative Hub)
+python start.py
+
+# 或直接直达海报拼贴工坊 (Poster Studio)
+python start.py --studio
+
+# 或直接直达官方贴画图鉴 (Emoji Gallery)
+python start.py --gallery
+
+# 自定义端口（若默认 8080 被占用会自动切换）
+python start.py --port 3000
 ```
 
-### 步骤 2：拉取高清素材包 (Fetch Asset Packs)
-> 为保证仓库轻量化，高清贴纸素材不直接纳入 Git 跟踪。首次使用前请运行同步脚本拉取官方高清素材：
+---
 
-```bash
-cd gallery/scripts
-python sync_emojis.py
-cd ../..
-```
+### 💻 方式二：使用 Python 原生内置模块启动
 
-### 步骤 3：启动本地服务 (Launch)
+如果您习惯直接使用 Python 内置的 `http.server` 模块：
 
-#### 选项 A：使用 PowerShell 脚本一键启动（推荐）
-```powershell
-# 启动创作中枢门户入口 (Hub Portal)
-.\start-suite.ps1
-
-# 或直接启动海报工坊 (Poster Studio)
-.\start-studio.ps1
-
-# 或直接启动表情包图鉴 (Emoji Gallery)
-.\start-gallery.ps1
-```
-
-#### 选项 B：使用原生 Python 命令
 ```bash
 python -m http.server 8080
 ```
-启动后在浏览器中访问：`http://localhost:8080`
+启动后在浏览器中访问：
+- 导航门户：`http://localhost:8080/index.html`
+- 海报工坊：`http://localhost:8080/poster_studio/index.html`
+- 表情图鉴：`http://localhost:8080/gallery/index.html`
 
 ---
 
-## 📁 目录结构 (Directory Structure)
+### ⚠️ 方式三：无需服务器 · 本地直接打开（不推荐）
+
+虽然支持直接双击网页文件打开，但受现代浏览器 `file://` 协议的安全限制，**不推荐**此方式：
+- ⚠️ **功能受限提示**：直接双击打开时，受浏览器同源与 Canvas 安全策略限制，**部分工程保存、高清图片导出与离线缓存功能可能会出现异常或受阻**。
+- 建议优先使用 **方式一 (`python start.py`)** 启动本地轻量服务以获得完整、稳定的创作与导出体验。
+
+---
+
+## 📁 项目结构
 
 ```text
 zzz-poster-studio/
-├── .gitignore                   # Git 忽略配置 (已配置素材与临时文件规则)
-├── README.md                    # 项目全景与使用文档
-├── index.html                   # 创作中枢门户导航入口 (Portal)
+├── start.py                     # Python 本地轻量服务器与一键启动脚本
+├── index.html                   # 创作中枢导航门户
+├── poster_studio/               # 【核心系统】海报与拼贴工坊
+│   ├── index.html               # 编辑器主界面
+│   ├── css/editor.css           # 街头美漫设计系统
+│   ├── js/
+│   │   ├── editor.js            # 画布渲染引擎与图层交互
+│   │   ├── emoji_data.js        # 贴纸素材数据索引
+│   │   └── templates.js         # 精选海报模板预设
+│   └── sw.js                    # PWA 离线缓存支持
 │
-├── poster_studio/               # 【核心系统】海报创作工坊
-│   ├── index.html               # 画布编辑器主界面
-│   ├── sw.js                    # PWA Service Worker 离线缓存
-│   ├── manifest.webmanifest     # PWA 应用配置清单
-│   ├── css/
-│   │   └── editor.css           # 潮流朋克风格设计系统
-│   └── js/
-│       ├── editor.js            # 画布渲染引擎、图层控制器与事件调度
-│       ├── emoji_data.js        # 贴纸数据适配层
-│       └── templates.js         # 官方精选海报预设模板
+├── gallery/                     # 【子系统】官方表情贴画图鉴
+│   ├── index.html               # 全量官方表情贴画分类瀑布流
+│   └── scripts/                 # 素材同步与图鉴生成脚本
 │
-├── gallery/                     # 【子系统】表情包图鉴与检索中心
-│   ├── index.html               # 表情包瀑布流与检索界面
-│   └── scripts/
-│       ├── sync_emojis.py       # 官方表情包增量抓取与同步脚本
-│       └── generate_gallery.py  # 图鉴生成与分类索引构建器
-│
-├── assets/                      # 全局静态资源库
-│   ├── emoji_index.json         # 表情元数据全量索引
-│   ├── emojis_hd/               # (由脚本拉取) 230+ 官方高清 PNG 贴纸素材
-│   └── icons/                   # 应用图标与 PWA 资产
-│
-├── docs/                        # 技术规范文档
-│   └── project_format_spec.md   # .zzzposter 工程文件格式规范 (v2.0)
-│
-├── start-suite.ps1              # 门户一键启动脚本 (PowerShell)
-├── start-studio.ps1             # 海报工坊一键启动脚本 (PowerShell)
-└── start-gallery.ps1            # 表情图鉴一键启动脚本 (PowerShell)
+└── assets/                      # 静态资源池与官方高清透明底贴图
 ```
 
 ---
 
-## 📐 工程文件格式规范 (Project Format Spec)
+## 📌 版权与免责声明
 
-本项目使用统一的 `.zzzposter` 工程标准：
-* 完整规范定义请参考：[docs/project_format_spec.md](docs/project_format_spec.md)
-* 规范涵盖画布属性、背景渐变与特效参数、图层变换矩阵（X/Y/Scale/Rotate）及资源路径引用。
+1. 本项目包含的《绝区零》(Zenless Zone Zero) 相关角色美术、官方表情、图标等知识产权均归属于 **上海米哈游网络科技股份有限公司 (miHoYo)**。
+2. 本项目为非商业性衍生创作工具，仅供绝区零玩家交流与个人二创学习使用。
 
----
-
-## 📌 免责与版权声明 (Disclaimer)
-
-1. 本项目中包含的《绝区零》(Zenless Zone Zero) 相关角色美术、官方表情、图标等知识产权均归属于 **上海米哈游网络科技股份有限公司 (miHoYo)**。
-2. 本项目为非商业性同人创作工具，仅供绝区零玩家交流与个人二创学习使用。

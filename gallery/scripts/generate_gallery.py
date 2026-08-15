@@ -158,7 +158,7 @@ def build_gallery():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>《绝区零》官方高清表情包全分类大观 (全 {len(files)} 张)</title>
+    <title>《绝区零》官方表情图鉴</title>
     <style>
         :root {{
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -225,8 +225,6 @@ def build_gallery():
             gap: 0.6rem;
             justify-content: center;
             margin-top: 1rem;
-            max-height: 150px;
-            overflow-y: auto;
             padding: 0.5rem;
         }}
         .nav-chip {{
@@ -492,12 +490,12 @@ def build_gallery():
 <body>
     <div class="container">
         <header>
-            <h1>《绝区零》官方高清表情包分类大观</h1>
-            <p class="subtitle">共收录 {len(files)} 张 100% 原始高清透明底原图 | 按版本号 / 联动项目 / 偶像与特别企划分类展示</p>
+            <h1>《绝区零》官方表情图鉴</h1>
+            <p class="subtitle">收录官方高清透明底贴画素材</p>
             <div style="margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 12px;">
                 <a href="../poster_studio/index.html" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #4f46e5 0%, #38bdf8 100%); color: #fff; text-decoration: none; padding: 0.75rem 1.6rem; border-radius: 9999px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); transition: transform 0.2s, box-shadow 0.2s;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                    🎨 打开 ZZZ 海报与封面工坊 (PWA 编辑器)
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+                    打开ZZZ Poster Studio应用
                 </a>
             </div>
             <div class="search-box">
