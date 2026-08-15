@@ -1,0 +1,37 @@
+# ==========================================
+# Git Ignore for zzz-poster-studio
+# ==========================================
+
+# High-Definition Asset Packs (Sync via gallery/scripts/sync_emojis.py)
+assets/emojis_hd/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.spec
+.pytest_cache/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# IDE & Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Temporary Data & Local Logs
+*.log
+scratch/
+temp/
+gallery/scripts/emoji_data_preview.json
+
+# Local Exports & Test Output
+exports/
+test_output/

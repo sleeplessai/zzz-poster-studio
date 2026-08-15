@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ZZZ Poster Studio - 绝区零海报与封面工坊 (PWA)</title>
+  <meta name="description" content="清新简约、功能强大的绝区零海报与封面制作工具，支持236+官方高清表情贴图、多图层编辑、文字描边与阴影、背景高斯模糊与无损高清导出。">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/zzz_logo_mark.svg">
+  <link rel="alternate icon" type="image/png" href="./icons/favicon.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Google Fonts: Noto Sans SC for clean Chinese typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/editor.css">
+</head>
+<body>
+  <div id="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <a class="brand-logo" href="./index.html">
+          <img src="./icons/zzz_logo_mark.svg" alt="ZZZ Official Logo">
+          <span>ZZZ Poster Studio</span>
+        </a>
+        <span class="brand-badge">PWA</span>
+
+        <!-- Canvas Preset Selector -->
+        <button id="btn-size-selector" class="size-selector-btn" title="切换画布预设尺寸">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+          <span id="label-current-size">16:9 标准横版</span>
+          <span class="dim" id="label-current-dims">1920 × 1080</span>
+        </button>
+      </div>
+
+      <div class="header-center">
+        <!-- History Controls & Manual Save Draft -->
+        <button id="btn-undo" class="btn btn-ghost" title="撤销 (Ctrl+Z)">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          撤销
+        </button>
+        <button id="btn-redo" class="btn btn-ghost" title="重做 (Ctrl+Y)">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+          重做
+        </button>
+        <button id="btn-clear-canvas" class="btn btn-ghost" title="清空所有图层">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          清空
+        </button>
+        <button id="btn-save-draft" class="btn btn-ghost" title="主动暂存草稿到本地存储 (Ctrl+S)">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>暂存草稿</span>
+        </button>
+      </div>
+
+      <div class="header-right">
+        <!-- PWA Install Button (shown when installable) -->
+        <button id="btn-pwa-install" class="btn btn-pwa">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          安装应用
+        </button>
+
+        <!-- Quick link to Gallery -->
+        <a href="../gallery/index.html" class="btn btn-default" title="浏览全部表情包画廊">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          表情画廊
+        </a>
+
+        <!-- Dedicated Project File Management Button -->
+        <button id="btn-open-project-modal" class="btn btn-default" title="海报工程文件管理 (.zzzposter / 导入导出)">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          项目文件
+        </button>
+
+        <!-- Quick Copy to Clipboard -->
+        <button id="btn-copy-clipboard" class="btn btn-default" title="一键复制图片到剪贴板">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          复制图片
+        </button>
+
+        <!-- Export Button -->
+        <button id="btn-open-export" class="btn btn-primary" title="导出高分辨率海报/封面">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导出图片
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Body Area -->
+    <div class="app-body">
+      <!-- Left Tab Icons -->
+      <nav class="nav-sidebar">
+        <button class="nav-tab-btn active" data-tab="tab-stickers" title="ZZZ 表情贴图">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          <span>贴纸</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="tab-text" title="文字排版与标题">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          <span>文字</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="tab-bg" title="背景、颜色与高斯模糊">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>背景</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="tab-templates" title="海报与封面预设模板">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M9 4v16"/><path d="M14 4v16"/></svg>
+          <span>模板</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="tab-upload" title="上传本地图片或素材">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>上传</span>
+        </button>
+      </nav>
+
+      <!-- Left Drawer Panels -->
+      <aside class="drawer-panel" id="main-drawer">
+        <!-- 1. Stickers Panel -->
+        <div class="drawer-tab-pane" id="pane-stickers">
+          <div class="drawer-header">
+            <span class="drawer-title">ZZZ 表情贴图 (236)</span>
+            <span style="font-size: 11px; color: var(--text-muted);">点击或拖拽添加</span>
+          </div>
+          <div class="drawer-content">
+            <div class="sticker-search-box">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="input-sticker-search" placeholder="搜索表情 (安比, 比利, 邦布, 哭...)">
+            </div>
+
+            <!-- Categories Horizontal Bar -->
+            <div class="category-pill-list" id="sticker-category-list">
+              <button class="category-pill active" data-cat="all">全部</button>
+            </div>
+
+            <!-- Sticker Grid -->
+            <div class="sticker-grid" id="sticker-grid-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Text Panel -->
+        <div class="drawer-tab-pane" id="pane-text" style="display: none;">
+          <div class="drawer-header">
+            <span class="drawer-title">文字与排版</span>
+            <span style="font-size: 11px; color: var(--text-muted);">点击预设快速置入</span>
+          </div>
+          <div class="drawer-content">
+            <!-- Group 1: Add Custom Text -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>创建自定义文本</span>
+                </div>
+              </div>
+              <button id="btn-add-custom-text" class="btn btn-primary" style="width: 100%; height: 38px; font-weight: 600; font-size: 13.5px; gap: 8px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                添加新文字图层
+              </button>
+              <span style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">创建后可在右侧属性栏精细调整描边、网点阴影与底色</span>
+            </div>
+
+            <!-- Group 2: Special & Pop-Art Titles -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  <span>波普与特效标题预设</span>
+                </div>
+              </div>
+              <div class="text-preset-list">
+                <div class="text-preset-card" data-preset="comic-pop" style="border-left: 3px solid #38bdf8; background: #fafafa;">
+                  <div style="font-size: 16px; font-weight: 900; color: #ffffff; -webkit-text-stroke: 1.5px #000000; text-shadow: 3px 3px 0 #334155; letter-spacing: 0.5px;">
+                    💥 狡兔屋波普网点大标题
+                  </div>
+                  <span style="font-size: 11px; color: var(--text-muted);">白字 + 粗黑描边 + 灰色美漫网点阴影</span>
+                </div>
+                <div class="text-preset-card" data-preset="neon" style="border-left: 3px solid #818cf8; background: #fafafa;">
+                  <span style="font-size: 16px; font-weight: 900; color: #ffffff; text-shadow: 0 0 8px #38bdf8; background: #0f172a; padding: 4px 8px; border-radius: 6px; width: fit-content;">⚡ 赛博霓虹发光字</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">带有高亮霓虹外发光特效</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 3: Regular Titles & Subtitles -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                  <span>经典标题与排版预设</span>
+                </div>
+              </div>
+              <div class="text-preset-list">
+                <div class="text-preset-card" data-preset="main-title">
+                  <span style="font-size: 18px; font-weight: 900; color: #0f172a;">海报大标题</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">适合醒目的主视觉标题</span>
+                </div>
+                <div class="text-preset-card" data-preset="subtitle">
+                  <span style="font-size: 14.5px; font-weight: 600; color: #475569;">副标题 / 补充说明</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">适合描述性副标题与活动时间</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 4: Badges & Quotes -->
+            <div class="inspector-group no-border">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  <span>胶囊标签与角色金句</span>
+                </div>
+              </div>
+              <div class="text-preset-list">
+                <div class="text-preset-card" data-preset="badge">
+                  <span style="font-size: 13px; font-weight: 700; color: #e11d48; background: #ffe4e6; padding: 4px 10px; border-radius: 12px; display: inline-block; width: fit-content;">✨ 元气推荐标签</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">圆角胶囊底色小徽章</span>
+                </div>
+                <div class="text-preset-card" data-preset="quote">
+                  <span style="font-size: 14px; font-style: italic; color: #334155;">「 羁绊与守护，永不褪色 」</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">经典台词、引述名言与金句</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Background & Blur Panel -->
+        <div class="drawer-tab-pane" id="pane-bg" style="display: none;">
+          <div class="drawer-header">
+            <span class="drawer-title">背景与特效</span>
+            <span style="font-size: 11px; color: var(--text-muted);">支持多层叠加滤镜</span>
+          </div>
+          <div class="drawer-content">
+            <!-- Group 1: Background Mode Selector -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+                  <span>背景基础模式</span>
+                </div>
+              </div>
+              <!-- Background Type Segmented Pill Toggle -->
+              <div class="bg-type-segmented-control" id="bg-type-selector">
+                <button class="bg-type-btn active" id="bg-type-color" title="纯色背景">纯色</button>
+                <button class="bg-type-btn" id="bg-type-gradient" title="渐变背景">渐变</button>
+                <button class="bg-type-btn" id="bg-type-popdots" title="波普波点背景">波普</button>
+                <button class="bg-type-btn" id="bg-type-film" title="卡通胶片背景">胶片</button>
+                <button class="bg-type-btn" id="bg-type-image" title="自定义图片背景">图片</button>
+              </div>
+            </div>
+
+            <!-- Group 2: Mode Parameters & Palette -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20v-2a8 8 0 0 1 0-16V2z"/></svg>
+                  <span>背景参数与色盘</span>
+                </div>
+              </div>
+
+              <!-- 1. Solid Color Controls -->
+              <div id="bg-color-settings" class="bg-section">
+                <div class="section-label">推荐清新配色</div>
+                <div class="color-palette-grid">
+                  <div class="color-swatch" style="background: #ffffff;" data-color="#ffffff"></div>
+                  <div class="color-swatch" style="background: #f8fafc;" data-color="#f8fafc"></div>
+                  <div class="color-swatch" style="background: #f1f5f9;" data-color="#f1f5f9"></div>
+                  <div class="color-swatch" style="background: #e2e8f0;" data-color="#e2e8f0"></div>
+                  <div class="color-swatch" style="background: #0f172a;" data-color="#0f172a"></div>
+                  <div class="color-swatch" style="background: #18181b;" data-color="#18181b"></div>
+
+                  <div class="color-swatch" style="background: #fee2e2;" data-color="#fee2e2"></div>
+                  <div class="color-swatch" style="background: #ffedd5;" data-color="#ffedd5"></div>
+                  <div class="color-swatch" style="background: #fef9c3;" data-color="#fef9c3"></div>
+                  <div class="color-swatch" style="background: #dcfce7;" data-color="#dcfce7"></div>
+                  <div class="color-swatch" style="background: #e0e7ff;" data-color="#e0e7ff"></div>
+                  <div class="color-swatch" style="background: #fae8ff;" data-color="#fae8ff"></div>
+
+                  <div class="color-swatch" style="background: #38bdf8;" data-color="#38bdf8"></div>
+                  <div class="color-swatch" style="background: #818cf8;" data-color="#818cf8"></div>
+                  <div class="color-swatch" style="background: #fb7185;" data-color="#fb7185"></div>
+                  <div class="color-swatch" style="background: #34d399;" data-color="#34d399"></div>
+                  <div class="color-swatch" style="background: #fbbf24;" data-color="#fbbf24"></div>
+                  <div class="color-swatch" style="background: #c084fc;" data-color="#c084fc"></div>
+                </div>
+
+                <div class="form-group" style="margin-top: 8px;">
+                  <label class="form-label">自定义背景底色</label>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" id="input-bg-color" value="#f8fafc" style="width: 44px; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                    <input type="text" id="input-bg-color-hex" value="#f8fafc" class="form-input" style="flex: 1;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Gradient Controls -->
+              <div id="bg-gradient-settings" class="bg-section" style="display: none;">
+                <div class="section-label">预设清新渐变 (6款)</div>
+                <div class="color-palette-grid">
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #fbcfe8, #fed7aa);" data-grad="#fbcfe8,#fed7aa" title="蜜桃晚霞"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #e0e7ff, #fce7f3);" data-grad="#e0e7ff,#fce7f3" title="薰衣草之梦"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #ccfbf1, #e0f2fe);" data-grad="#ccfbf1,#e0f2fe" title="薄荷晨曦"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #fef08a, #fed7aa);" data-grad="#fef08a,#fed7aa" title="暖阳柠檬"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #dcfce7, #a7f3d0);" data-grad="#dcfce7,#a7f3d0" title="抹茶青柠"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #ede9fe, #fae8ff);" data-grad="#ede9fe,#fae8ff" title="梦幻极光紫"></div>
+                </div>
+
+                <div class="section-label" style="margin-top: 8px;">预设深色/暗调渐变 (6款)</div>
+                <div class="color-palette-grid">
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #0f172a, #1e293b);" data-grad="#0f172a,#1e293b" title="深邃星空黑"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #09090b, #312e81);" data-grad="#09090b,#312e81" title="赛博暗霓虹"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #1a050d, #4c0519);" data-grad="#1a050d,#4c0519" title="绝区黑曜石红"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #180b2c, #3b0764);" data-grad="#180b2c,#3b0764" title="虚空暗紫"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #022c22, #064e3b);" data-grad="#022c22,#064e3b" title="冷杉暗绿"></div>
+                  <div class="color-swatch" style="background: linear-gradient(135deg, #18181b, #27272a);" data-grad="#18181b,#27272a" title="银翼暗金属"></div>
+                </div>
+
+                <div class="form-row" style="margin-top: 8px;">
+                  <div class="form-group">
+                    <label class="form-label">渐变起始色</label>
+                    <input type="color" id="input-grad-color1" value="#e0e7ff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">渐变结束色</label>
+                    <input type="color" id="input-grad-color2" value="#fce7f3" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                </div>
+
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <span>渐变角度</span>
+                    <span id="label-grad-angle">135°</span>
+                  </div>
+                  <input type="range" id="slider-grad-angle" class="slider-control" min="0" max="360" value="135">
+                </div>
+              </div>
+
+              <!-- 3. Pop-Art Polka Dots Settings -->
+              <div id="bg-popdots-settings" class="bg-section" style="display: none;">
+                <div class="section-label">预设经典波普风格 (6款)</div>
+                <div class="color-palette-grid">
+                  <div class="color-swatch pop-preset-swatch" style="background: #fbbf24; border: 2px solid #000; position: relative; overflow: hidden;" data-popbg="#fbbf24" data-popdot="#18181b" data-poppattern="staggered" data-popsize="10" data-popspacing="36" title="狡兔屋经典黑黄波普">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#18181b 3px, transparent 3px); background-size: 10px 10px;"></div>
+                  </div>
+                  <div class="color-swatch pop-preset-swatch" style="background: #09090b; border: 2px solid #22c55e; position: relative; overflow: hidden;" data-popbg="#09090b" data-popdot="#22c55e" data-poppattern="staggered" data-popsize="8" data-popspacing="30" title="赛博荧光绿点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#22c55e 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  </div>
+                  <div class="color-swatch pop-preset-swatch" style="background: #f43f5e; border: 2px solid #fff; position: relative; overflow: hidden;" data-popbg="#f43f5e" data-popdot="#ffffff" data-poppattern="staggered" data-popsize="9" data-popspacing="32" title="元气粉红白点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#ffffff 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  </div>
+                  <div class="color-swatch pop-preset-swatch" style="background: #0284c7; border: 2px solid #fff; position: relative; overflow: hidden;" data-popbg="#0284c7" data-popdot="#ffffff" data-poppattern="staggered" data-popsize="9" data-popspacing="32" title="街头青蓝白点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#ffffff 2.5px, transparent 2.5px); background-size: 10px 10px;"></div>
+                  </div>
+                  <div class="color-swatch pop-preset-swatch" style="background: #ffffff; border: 2px solid #000; position: relative; overflow: hidden;" data-popbg="#ffffff" data-popdot="#0f172a" data-poppattern="micro" data-popsize="3" data-popspacing="12" title="复古美漫黑白网点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#0f172a 2px, transparent 2px); background-size: 8px 8px;"></div>
+                  </div>
+                  <div class="color-swatch pop-preset-swatch" style="background: #180b2c; border: 2px solid #c084fc; position: relative; overflow: hidden;" data-popbg="#180b2c" data-popdot="#c084fc" data-poppattern="radial" data-popsize="12" data-popspacing="36" title="虚空暗紫放射波点">
+                    <div style="position: absolute; inset: 0; background-image: radial-gradient(#c084fc 3px, transparent 3px); background-size: 12px 12px;"></div>
+                  </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 8px;">
+                  <div class="form-group">
+                    <label class="form-label">背景底色</label>
+                    <input type="color" id="input-pop-bg-color" value="#fbbf24" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">波点颜色</label>
+                    <input type="color" id="input-pop-dot-color" value="#18181b" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 4px;">
+                  <label class="form-label">波点排布模式</label>
+                  <select id="select-pop-pattern" class="form-select">
+                    <option value="staggered">⚡ 交错蜂窝美漫波点 (Staggered Pop)</option>
+                    <option value="grid">▦ 正交坐标矩阵点阵 (Grid Matrix)</option>
+                    <option value="radial">💥 中心放射半色调 (Radial Burst)</option>
+                    <option value="micro">📰 报纸微粒网屏 (Micro Halftone)</option>
+                  </select>
+                </div>
+
+                <div class="slider-group" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>波点大小 (半径)</span>
+                    <span id="label-pop-dot-size">10 px</span>
+                  </div>
+                  <input type="range" id="slider-pop-dot-size" class="slider-control" min="2" max="40" value="10">
+                </div>
+
+                <div class="slider-group" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>波点间距密度</span>
+                    <span id="label-pop-dot-spacing">36 px</span>
+                  </div>
+                  <input type="range" id="slider-pop-dot-spacing" class="slider-control" min="10" max="90" value="36">
+                </div>
+              </div>
+
+              <!-- 4. Cartoon Film Strip Settings -->
+              <div id="bg-film-settings" class="bg-section" style="display: none;">
+                <div class="section-label">预设胶片与分镜画框 (4款)</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                  <button class="btn btn-default film-preset-btn active" data-filmstyle="cinema-h" style="padding: 10px; font-size: 11px; flex-direction: column; height: auto;">
+                    <span style="font-size: 16px;">🎞️</span>
+                    <span style="font-weight: 600;">35mm 电影胶卷</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">上下齿孔与片号</span>
+                  </button>
+                  <button class="btn btn-default film-preset-btn" data-filmstyle="cinema-v" style="padding: 10px; font-size: 11px; flex-direction: column; height: auto;">
+                    <span style="font-size: 16px;">📼</span>
+                    <span style="font-weight: 600;">竖向侧轨胶片</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">左右两侧胶片边</span>
+                  </button>
+                  <button class="btn btn-default film-preset-btn" data-filmstyle="manga-4panel" style="padding: 10px; font-size: 11px; flex-direction: column; height: auto;">
+                    <span style="font-size: 16px;">🎬</span>
+                    <span style="font-weight: 600;">四格漫画分镜</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">经典漫画格子</span>
+                  </button>
+                  <button class="btn btn-default film-preset-btn" data-filmstyle="polaroid" style="padding: 10px; font-size: 11px; flex-direction: column; height: auto;">
+                    <span style="font-size: 16px;">📷</span>
+                    <span style="font-weight: 600;">复古拍立得框</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">底部留白相纸</span>
+                  </button>
+                </div>
+
+                <div class="form-row" style="margin-top: 8px;">
+                  <div class="form-group">
+                    <label class="form-label">胶片框底色</label>
+                    <input type="color" id="input-film-frame-color" value="#09090b" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">内衬画面颜色</label>
+                    <input type="color" id="input-film-inner-color" value="#ffffff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 4px;">
+                  <div class="form-group">
+                    <label class="form-label">胶卷文字标识</label>
+                    <input type="text" id="input-film-label" class="form-input" value="NEW ERIDU FILM 500T" style="height: 32px; font-size: 11px;">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">分镜标号</label>
+                    <input type="text" id="input-film-number" class="form-input" value="▶ 24" style="height: 32px; font-size: 11px;">
+                  </div>
+                </div>
+
+                <div class="slider-group" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>胶卷边框厚度</span>
+                    <span id="label-film-thickness">90 px</span>
+                  </div>
+                  <input type="range" id="slider-film-thickness" class="slider-control" min="40" max="180" value="90">
+                </div>
+              </div>
+
+              <!-- 5. Image Background Controls -->
+              <div id="bg-image-settings" class="bg-section" style="display: none;">
+                <div class="section-label">上传背景图片</div>
+                <button id="btn-upload-bg-img" class="btn btn-default" style="width: 100%;">
+                  <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  选择本地背景图片
+                </button>
+                <input type="file" id="file-bg-img" accept="image/*" style="display: none;">
+                
+                <div class="form-group" style="margin-top: 8px;">
+                  <label class="form-label">填充方式</label>
+                  <select id="select-bg-fit" class="form-select">
+                    <option value="cover">铺满裁剪 (Cover)</option>
+                    <option value="contain">完整居中 (Contain)</option>
+                    <option value="stretch">拉伸填充 (Stretch)</option>
+                  </select>
+                </div>
+
+                <div class="section-label" style="margin-top: 12px;">绝区零官方背景/壁纸 (28款)</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 240px; overflow-y: auto; padding-right: 4px;" id="bg-preset-grid">
+                  <!-- Rendered dynamically -->
+                </div>
+
+                <button id="btn-remove-bg-img" class="btn btn-ghost" style="color: var(--accent-danger); font-size: 12px; margin-top: 8px; width: 100%;">
+                  清除背景图片 (恢复纯色)
+                </button>
+              </div>
+            </div>
+
+            <!-- Group 3: Universal Background Decoration Overlay -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>叠加装饰纹理</span>
+                </div>
+                <span style="font-size: 10px; color: var(--accent-primary); font-weight: 600; background: var(--accent-primary-light); padding: 2px 6px; border-radius: 4px;">任意叠加</span>
+              </div>
+
+              <div class="form-group">
+                <select id="select-bg-decoration-type" class="form-select">
+                  <option value="none">无装饰 (保持纯净)</option>
+                  <option value="speedlines">💥 美漫动作放射速度线 (Speedlines)</option>
+                  <option value="hazard">⚠️ 绝区零街头警戒斜纹 (Hazard Stripes)</option>
+                  <option value="cybergrid">🌐 赛博机能方格网 (Cyber Matrix)</option>
+                  <option value="scanlines">📺 复古电视扫描线 (CRT Scanlines)</option>
+                  <option value="screentone">🖤 密集漫画网点纹理 (Manga Screentone)</option>
+                  <option value="vignette">🌑 电影级暗角黑边 (Cinema Vignette)</option>
+                </select>
+              </div>
+
+              <div id="bg-decoration-controls" style="display: none;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">装饰颜色</label>
+                    <input type="color" id="input-bg-dec-color" value="#ffffff" style="width: 100%; height: 32px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">装饰透明度</label>
+                    <div style="display: flex; align-items: center; gap: 6px; height: 32px;">
+                      <input type="range" id="slider-bg-dec-opacity" class="slider-control" min="5" max="100" value="35" style="flex: 1;">
+                      <span id="label-bg-dec-opacity" style="font-size: 11px; color: var(--text-secondary); width: 32px;">35%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 4: Blur & Filter Dimming -->
+            <div class="inspector-group no-border">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>
+                  <span>高斯模糊与暗角调光</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>✨ 高斯模糊强度 (Blur)</span>
+                  <span id="label-bg-blur" style="font-weight: 600; color: var(--accent-primary);">0 px</span>
+                </div>
+                <input type="range" id="slider-bg-blur" class="slider-control" min="0" max="40" value="0">
+                <span style="font-size: 11px; color: var(--text-muted);">对背景施加实时高斯模糊，让前景文字更醒目</span>
+              </div>
+
+              <div class="slider-group" style="margin-top: 4px;">
+                <div class="slider-header">
+                  <span>背景暗角 / 亮度调节</span>
+                  <span id="label-bg-overlay">0%</span>
+                </div>
+                <input type="range" id="slider-bg-overlay" class="slider-control" min="0" max="80" value="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- 5. Templates Panel -->
+        <div class="drawer-tab-pane" id="pane-templates" style="display: none;">
+          <div class="drawer-header">
+            <span class="drawer-title">精选海报封面模版</span>
+          </div>
+          <div class="drawer-content" id="template-list-container">
+            <!-- Rendered from js/templates.js -->
+          </div>
+        </div>
+
+        <!-- 6. Upload Panel -->
+        <div class="drawer-tab-pane" id="pane-upload" style="display: none;">
+          <div class="drawer-header">
+            <span class="drawer-title">自定义素材</span>
+          </div>
+          <div class="drawer-content">
+            <div id="drop-zone-upload" style="border: 2px dashed var(--border-light); border-radius: var(--radius-lg); padding: 24px 16px; text-align: center; cursor: pointer; background: var(--bg-hover); transition: var(--transition-fast);">
+              <svg viewBox="0 0 24 24" width="32" height="32" stroke="var(--accent-primary)" stroke-width="2" fill="none" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">点击或拖拽图片到此处</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">支持 PNG, JPG, WebP, SVG</div>
+            </div>
+            <input type="file" id="file-custom-upload" accept="image/*" multiple style="display: none;">
+
+            <div class="section-label" style="margin-top: 16px;">已上传素材列表</div>
+            <div class="sticker-grid" id="custom-uploads-grid">
+              <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 12px; padding: 12px 0;">暂无自定义素材</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Canvas Artboard -->
+      <main class="canvas-viewport" id="canvas-viewport">
+        <!-- Rulers (Top & Left) -->
+        <div id="ruler-corner" class="ruler-corner" title="像素标尺 (px)">px</div>
+        <canvas id="ruler-horizontal" class="canvas-ruler ruler-h"></canvas>
+        <canvas id="ruler-vertical" class="canvas-ruler ruler-v"></canvas>
+
+        <div class="canvas-artboard-wrapper" id="artboard-wrapper">
+          <canvas id="main-canvas" width="1920" height="1080"></canvas>
+          <!-- Alignment Mask & Composition Overlay (Thirds, Center, Safe Area, Grid, Golden) -->
+          <svg id="alignment-mask-overlay" class="alignment-mask-overlay"></svg>
+          <!-- Smart Guides Snapping Overlay -->
+          <svg id="smart-guides-overlay" class="smart-guides-overlay"></svg>
+          <!-- User Custom Guide Lines -->
+          <div id="guides-container"></div>
+          <!-- Interactive Transform & Selection Overlay -->
+          <div id="selection-overlay"></div>
+        </div>
+
+        <!-- Floating Bottom Zoom, Ruler & Alignment Mask Bar -->
+        <div class="canvas-bottom-bar">
+          <!-- Zoom Controls -->
+          <div class="bottom-bar-group">
+            <button id="btn-zoom-out" class="floating-btn" title="缩小 (Ctrl + -)">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span id="label-zoom-level" class="zoom-label">60%</span>
+            <button id="btn-zoom-in" class="floating-btn" title="放大 (Ctrl + +)">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button id="btn-zoom-fit" class="btn btn-ghost" style="padding: 2px 8px; font-size: 11px; height: 26px; white-space: nowrap;">自适应</button>
+          </div>
+
+          <div class="divider-v"></div>
+
+          <!-- Ruler Toggle Button -->
+          <button id="btn-toggle-ruler" class="btn btn-ghost" title="显示/隐藏画布像素标尺" style="padding: 2px 8px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0;">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M2 12h20M6 8v8M10 9v6M14 8v8M18 9v6"/></svg>
+            <span id="label-ruler-btn" style="white-space: nowrap;">标尺</span>
+          </button>
+
+          <!-- Magnetic Snapping Toggle -->
+          <button id="btn-toggle-snap" class="btn btn-ghost active" title="智能磁性吸附对齐 (中心与边界)" style="padding: 2px 8px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0;">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M6 3v7a6 6 0 0 0 12 0V3M6 3h4M14 3h4M6 8h4M14 8h4"/></svg>
+            <span style="white-space: nowrap;">智能吸附</span>
+          </button>
+
+          <div class="divider-v"></div>
+
+          <!-- Alignment & Composition Mask Select -->
+          <div class="bottom-bar-group">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" style="flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+            <span class="bottom-bar-label">对齐蒙版:</span>
+            <select id="select-alignment-mask" class="form-select" style="padding: 2px 8px; font-size: 11px; height: 26px; border-radius: 4px; width: auto; background: #ffffff; cursor: pointer; white-space: nowrap;">
+              <option value="none">无蒙版 (纯净)</option>
+              <option value="thirds">三分法黄金构图 (3×3)</option>
+              <option value="center">中心十字对称轴 (Center)</option>
+              <option value="safe-area">安全出血线 (90%/80%)</option>
+              <option value="grid">50px 像素网格 (Grid)</option>
+              <option value="golden">黄金分割与对角线 (Golden)</option>
+            </select>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Property & Layer Sidebar -->
+      <aside class="prop-sidebar">
+        <div class="prop-tabs">
+          <button class="prop-tab-btn active" id="tab-btn-properties">图层属性</button>
+          <button class="prop-tab-btn" id="tab-btn-layers">图层列表 (<span id="layer-count-badge">0</span>)</button>
+        </div>
+
+        <!-- 1. Properties Inspector Tab -->
+        <div class="prop-content" id="prop-pane-inspector">
+          <div id="no-selection-hint" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 10px;">
+            <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="1.5" fill="none" style="margin-bottom: 8px; opacity: 0.5;"><path d="M15 15l6 6m-11-4a7 7 0 110-14 7 7 0 010 14z"/></svg>
+            <div>请在画布中选中一个图层</div>
+            <div style="font-size: 11px; margin-top: 4px;">或从左侧添加贴图/文字</div>
+          </div>
+
+          <div id="layer-properties-form" style="display: none;">
+            <!-- 1. Transform Group -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>尺寸与基础变换</span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">宽度 (W px)</label>
+                  <input type="number" id="prop-width" class="form-input" min="10">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">高度 (H px)</label>
+                  <input type="number" id="prop-height" class="form-input" min="10">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">旋转角度 (°)</label>
+                  <input type="number" id="prop-rotation" class="form-input" min="-360" max="360">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">不透明度</label>
+                  <div style="display: flex; align-items: center; height: 36px; gap: 8px;">
+                    <input type="range" id="prop-opacity" class="slider-control" min="0" max="100" value="100" style="flex: 1;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Alignment Tools Group -->
+            <div class="inspector-group">
+              <div class="inspector-group-title">
+                <div class="title-left">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><rect x="4" y="6" width="16" height="4"/><rect x="6" y="14" width="12" height="4"/></svg>
+                  <span>画布快速对齐</span>
+                </div>
+              </div>
+              <div class="button-group-row">
+                <button class="btn-toggle" id="btn-align-left" title="左对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="4" y1="2" x2="4" y2="22"/><rect x="8" y="6" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button>
+                <button class="btn-toggle" id="btn-align-center-h" title="水平居中"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="2" x2="12" y2="22"/><rect x="4" y="6" width="16" height="4"/><rect x="6" y="14" width="12" height="4"/></svg></button>
+                <button class="btn-toggle" id="btn-align-right" title="右对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="20" y1="2" x2="20" y2="22"/><rect x="4" y="6" width="12" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button>
+                <button class="btn-toggle" id="btn-align-top" title="顶对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="2" y1="4" x2="22" y2="4"/><rect x="6" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg></button>
+                <button class="btn-toggle" id="btn-align-center-v" title="垂直居中"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="2" y1="12" x2="22" y2="12"/><rect x="6" y="4" width="4" height="16"/><rect x="14" y="6" width="4" height="12"/></svg></button>
+                <button class="btn-toggle" id="btn-align-bottom" title="底对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="2" y1="20" x2="22" y2="20"/><rect x="6" y="4" width="4" height="12"/><rect x="14" y="8" width="4" height="8"/></svg></button>
+              </div>
+            </div>
+
+            <!-- 3. Specific Text Inspector -->
+            <div id="inspector-text-section" style="display: none;">
+              <!-- Text Basic Group -->
+              <div class="inspector-group">
+                <div class="inspector-group-title">
+                  <div class="title-left">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    <span>文字内容与排版</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">文本内容</label>
+                  <textarea id="prop-text-content" class="form-textarea" rows="2" placeholder="输入文字..."></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">字体选择</label>
+                    <select id="prop-text-font" class="form-select">
+                      <option value="'Noto Sans SC', sans-serif">思源黑体 (Noto Sans SC)</option>
+                      <option value="'PingFang SC', 'Microsoft YaHei', sans-serif">系统黑体 (PingFang / YaHei)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">字号 (px)</label>
+                    <input type="number" id="prop-text-size" class="form-input" min="10" max="400">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">文字颜色</label>
+                    <input type="color" id="prop-text-color" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">段落对齐</label>
+                    <div class="button-group-row">
+                      <button class="btn-toggle active" id="btn-text-align-left" title="左对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>
+                      <button class="btn-toggle" id="btn-text-align-center" title="居中"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+                      <button class="btn-toggle" id="btn-text-align-right" title="右对齐"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Text Stroke & Badge Group -->
+              <div class="inspector-group">
+                <div class="inspector-group-title">
+                  <div class="title-left">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/></svg>
+                    <span>文字描边与底色胶囊</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">描边颜色</label>
+                    <input type="color" id="prop-text-stroke-color" value="#000000" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">描边粗细 (px)</label>
+                    <input type="number" id="prop-text-stroke-width" class="form-input" min="0" max="40" value="0">
+                  </div>
+                </div>
+
+                <div class="button-group-row">
+                  <button class="btn-toggle active" id="btn-stroke-0">无描边</button>
+                  <button class="btn-toggle" id="btn-stroke-2">细 2px</button>
+                  <button class="btn-toggle" id="btn-stroke-6">中 6px</button>
+                  <button class="btn-toggle" id="btn-stroke-12">粗 12px</button>
+                </div>
+
+                <div class="form-row" style="margin-top: 4px;">
+                  <div class="form-group">
+                    <label class="form-label">底色胶囊填充</label>
+                    <input type="color" id="prop-text-bg-fill" value="#ffffff" style="width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">底色状态切换</label>
+                    <button id="btn-toggle-text-bg" class="btn btn-default" style="width: 100%; height: 36px;">无底色</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Text Shadow & Pop-Art Halftone Screentone Group -->
+              <div class="inspector-group">
+                <div class="inspector-group-title">
+                  <div class="title-left">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
+                    <span>文字阴影 / 波普网点特效</span>
+                  </div>
+                  <span style="font-size: 10px; color: var(--accent-primary); font-weight: bold; background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px;">绝区零波普风</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">阴影渲染模式</label>
+                  <select id="prop-text-shadow-type" class="form-select">
+                    <option value="none">无阴影 (纯净)</option>
+                    <option value="halftone">⚡ 波普漫画灰色网点阴影 (Halftone)</option>
+                    <option value="solid">🏷️ 实体黑边硬投影 (Solid Offset)</option>
+                    <option value="glow">✨ 霓虹发光光晕 (Neon Glow)</option>
+                  </select>
+                </div>
+
+                <div id="text-shadow-controls" style="display: none;">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">阴影/网点颜色</label>
+                      <input type="color" id="prop-text-shadow-color" value="#334155" style="width: 100%; height: 32px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer;">
+                    </div>
+                    <div class="form-group" id="group-halftone-type">
+                      <label class="form-label">网点纹理样式</label>
+                      <select id="prop-text-halftone-type" class="form-select" style="height: 32px;">
+                        <option value="dots">经典圆点阵 (Dots)</option>
+                        <option value="checker">波普方格点 (Checker)</option>
+                        <option value="stripes">机能斜线 (Stripes)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group" style="margin-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-secondary); margin-bottom: 2px;">
+                      <span>阴影偏移距离</span>
+                      <span id="label-text-shadow-offset" style="font-weight: 600; color: var(--accent-primary);">8 px</span>
+                    </div>
+                    <input type="range" id="slider-text-shadow-offset" class="slider-control" min="2" max="30" value="8">
+                  </div>
+
+                  <div class="form-group" style="margin-top: 4px;" id="group-halftone-density">
+                    <label class="form-label">网点密度与颗粒</label>
+                    <div class="button-group-row">
+                      <button class="btn-toggle" id="btn-halftone-dense" data-spacing="4" data-size="1.5">密集 4px</button>
+                      <button class="btn-toggle active" id="btn-halftone-normal" data-spacing="6" data-size="2.2">标准 6px</button>
+                      <button class="btn-toggle" id="btn-halftone-coarse" data-spacing="9" data-size="3.2">粗颗粒 9px</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Comic Style Presets -->
+                <div style="margin-top: 4px; display: flex; gap: 8px;">
+                  <button id="btn-preset-comic-hares" class="btn btn-default" style="flex: 1; font-size: 11px; padding: 7px 6px; background: rgba(56,189,248,0.08); border-color: var(--accent-primary);" title="白字 + 8px黑描边 + 8px灰色网点阴影 (狡兔屋原版)">
+                    💥 狡兔屋波普风
+                  </button>
+                  <button id="btn-preset-cyber-glow" class="btn btn-default" style="flex: 1; font-size: 11px; padding: 7px 6px;" title="白字 + 霓虹青蓝发光">
+                    ⚡ 赛博发光
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Specific Sticker/Image Inspector Group -->
+            <div id="inspector-image-section" style="display: none;">
+              <div class="inspector-group">
+                <div class="inspector-group-title">
+                  <div class="title-left">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>贴图镜像与翻转</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <button id="btn-flip-h" class="btn btn-default" style="font-size: 12px; padding: 8px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                    水平翻转
+                  </button>
+                  <button id="btn-flip-v" class="btn btn-default" style="font-size: 12px; padding: 8px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 8V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    垂直翻转
+                  </button>
+                </div>
+              </div>
+            </div>
+
+
+
+            <!-- 6. Layer Action Buttons Group -->
+            <div class="inspector-group no-border" style="padding-top: 16px;">
+              <div style="display: flex; gap: 10px;">
+                <button id="btn-prop-duplicate" class="btn btn-default" style="flex: 1; font-size: 12.5px; padding: 8px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  复制图层
+                </button>
+                <button id="btn-prop-delete" class="btn btn-default" style="color: var(--accent-danger); font-size: 12.5px; padding: 8px 14px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  删除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Layer List Tab -->
+        <div class="prop-content" id="prop-pane-layers" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="section-label">图层层级 (从上至下)</span>
+            <div style="display: flex; gap: 4px;">
+              <button id="btn-layer-up" class="floating-btn" title="上移一层"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"/></svg></button>
+              <button id="btn-layer-down" class="floating-btn" title="下移一层"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"/></svg></button>
+            </div>
+          </div>
+          <div class="layer-list" id="layer-list-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Size Preset Modal -->
+  <dialog id="modal-size-presets" class="custom-modal">
+    <div class="modal-header">
+      <div class="modal-title">选择画布尺寸与比例</div>
+      <button class="floating-btn" onclick="document.getElementById('modal-size-presets').close()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="text-preset-card size-opt-card" data-w="1920" data-h="1080" data-name="16:9 标准横版">
+        <div style="font-weight: 600;">🖥️ 16:9 标准横版 / 宽屏画幅</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1920 × 1080 (16:9)</div>
+      </button>
+      <button class="text-preset-card size-opt-card" data-w="1600" data-h="1200" data-name="4:3 经典横版">
+        <div style="font-weight: 600;">🎞️ 4:3 经典横版 / 复古画幅</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1600 × 1200 (4:3)</div>
+      </button>
+      <button class="text-preset-card size-opt-card" data-w="1080" data-h="1440" data-name="3:4 经典竖版">
+        <div style="font-weight: 600;">📄 3:4 经典竖版 / 纵向海报</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1080 × 1440 (3:4)</div>
+      </button>
+      <button class="text-preset-card size-opt-card" data-w="1080" data-h="1080" data-name="1:1 正方画幅">
+        <div style="font-weight: 600;">🟩 1:1 正方画幅 / 方形配图</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1080 × 1080 (1:1)</div>
+      </button>
+      <button class="text-preset-card size-opt-card" data-w="1080" data-h="1920" data-name="9:16 满屏竖版">
+        <div style="font-weight: 600;">📱 9:16 满屏竖版 / 纵向壁纸</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1080 × 1920 (9:16)</div>
+      </button>
+      <button class="text-preset-card size-opt-card" data-w="1920" data-h="817" data-name="2.35:1 宽荧幕">
+        <div style="font-weight: 600;">🎬 2.35:1 宽荧幕 / 电影横幅</div>
+        <div style="font-size: 12px; color: var(--text-muted);">1920 × 817 (2.35:1)</div>
+      </button>
+
+      <div style="border-top: 1px solid var(--border-light); padding-top: 10px; margin-top: 6px;">
+        <div class="section-label">自定义尺寸</div>
+        <div class="form-row" style="margin-top: 6px;">
+          <input type="number" id="input-custom-w" placeholder="宽度 px" class="form-input" value="1200">
+          <input type="number" id="input-custom-h" placeholder="高度 px" class="form-input" value="800">
+        </div>
+        <button id="btn-apply-custom-size" class="btn btn-primary" style="width: 100%; margin-top: 8px;">应用自定义尺寸</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Export Modal (Focused Purely on Image Rendering & Download) -->
+  <dialog id="modal-export" class="custom-modal">
+    <div class="modal-header">
+      <div class="modal-title">导出高清海报 / 封面</div>
+      <button class="floating-btn" onclick="document.getElementById('modal-export').close()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="form-group">
+        <label class="form-label">导出格式</label>
+        <div class="button-group-row">
+          <button class="btn-toggle active" id="export-fmt-png">PNG (高清无损)</button>
+          <button class="btn-toggle" id="export-fmt-jpg">JPG (适合网络)</button>
+          <button class="btn-toggle" id="export-fmt-webp">WebP (轻量)</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">分辨率清晰度倍率</label>
+        <div class="button-group-row">
+          <button class="btn-toggle" id="export-scale-1">1x (标准)</button>
+          <button class="btn-toggle active" id="export-scale-2">2x (超清推荐)</button>
+          <button class="btn-toggle" id="export-scale-3">3x (4K印刷级)</button>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="export-res-label">导出分辨率: 3840 × 2160 px</span>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="document.getElementById('modal-export').close()">取消</button>
+        <button id="btn-do-download" class="btn btn-primary" style="padding: 8px 20px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          下载图片
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Dedicated Project Management Modal (.zzzposter / Local Projects) -->
+  <dialog id="modal-project" class="custom-modal" style="max-width: 480px;">
+    <div class="modal-header">
+      <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span>海报工程文件管理</span>
+      </div>
+      <button class="floating-btn" onclick="document.getElementById('modal-project').close()"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <!-- Project Name Input -->
+      <div class="form-group">
+        <label class="form-label">工程名称</label>
+        <input type="text" id="input-project-name" class="form-input" value="绝区零海报作品" placeholder="输入工程名称">
+      </div>
+
+      <!-- File Actions -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button id="btn-save-project" class="btn btn-primary" style="padding: 14px; flex-direction: column; gap: 6px; height: auto;" title="导出可跨设备编辑的 .zzzposter 工程文件">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span style="font-weight: 600; font-size: 13px;">保存工程文件</span>
+          <span style="font-size: 10px; opacity: 0.85;">导出 .zzzposter</span>
+        </button>
+
+        <button id="btn-load-project-trigger" class="btn btn-default" style="padding: 14px; flex-direction: column; gap: 6px; height: auto;" title="导入已保存的 .zzzposter 或 .json 工程">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span style="font-weight: 600; font-size: 13px;">打开工程文件</span>
+          <span style="font-size: 10px; color: var(--text-muted);">载入 .zzzposter / .json</span>
+        </button>
+        <input type="file" id="file-load-project" accept=".zzzposter,.json" style="display: none;">
+      </div>
+
+      <!-- Project Specification & Format Info Badge -->
+      <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+        <div style="font-weight: 700; color: var(--accent-primary); margin-bottom: 2px;">📦 .zzzposter 标准工程格式 (v2.0)</div>
+        包含完整画布尺寸、背景配置、全量图层（贴图、波普文字、装饰形状）及其独立图元数据，无损跨设备可追溯迁移。
+      </div>
+
+      <div class="modal-footer" style="margin-top: 4px;">
+        <button class="btn btn-default" onclick="document.getElementById('modal-project').close()">关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="./js/emoji_data.js"></script>
+  <script src="./js/templates.js"></script>
+  <script src="./js/editor.js"></script>
+</body>
+</html>
