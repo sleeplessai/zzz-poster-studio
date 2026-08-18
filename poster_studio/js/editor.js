@@ -1147,11 +1147,11 @@
   function addTextLayer(presetType = 'normal', posX, posY) {
     let text = '「 世界全剧终，欢迎来到新艾利都 」';
     let fontSize = 54;
-    let fontWeight = 'bold';
+    let fontWeight = '900';
     let fontStyle = 'normal';
-    let fillColor = '#0f172a';
+    let fillColor = '#ffffff';
     let strokeColor = '#000000';
-    let strokeWidth = 0;
+    let strokeWidth = 6;
     let bgFill = null;
     let bgRadius = 0;
     let shadowType = 'none';
@@ -3102,7 +3102,7 @@
         // Text Shadow & Halftone Inspector Sync
         const sType = selected.shadowType || (selected.shadowBlur > 0 ? 'glow' : 'none');
         if (dom.propTextShadowType) dom.propTextShadowType.value = sType;
-        if (dom.textShadowControls) dom.textShadowControls.style.display = (sType !== 'none') ? 'block' : 'none';
+        if (dom.textShadowControls) dom.textShadowControls.style.display = (sType !== 'none') ? 'flex' : 'none';
         if (dom.groupHalftoneType) dom.groupHalftoneType.style.display = (sType === 'halftone') ? 'block' : 'none';
         if (dom.groupHalftoneDensity) dom.groupHalftoneDensity.style.display = (sType === 'halftone') ? 'block' : 'none';
         if (dom.propTextShadowColor) dom.propTextShadowColor.value = selected.shadowColor || '#334155';
@@ -3163,11 +3163,11 @@
     if (dom.bgTypeFilm) dom.bgTypeFilm.classList.toggle('active', type === 'film');
     if (dom.bgTypeImage) dom.bgTypeImage.classList.toggle('active', type === 'image');
 
-    if (dom.bgColorSettings) dom.bgColorSettings.style.display = (type === 'color') ? 'block' : 'none';
-    if (dom.bgGradientSettings) dom.bgGradientSettings.style.display = (type === 'gradient') ? 'block' : 'none';
-    if (dom.bgPopdotsSettings) dom.bgPopdotsSettings.style.display = (type === 'popdots') ? 'block' : 'none';
-    if (dom.bgFilmSettings) dom.bgFilmSettings.style.display = (type === 'film') ? 'block' : 'none';
-    if (dom.bgImageSettings) dom.bgImageSettings.style.display = (type === 'image') ? 'block' : 'none';
+    if (dom.bgColorSettings) dom.bgColorSettings.style.display = (type === 'color') ? 'flex' : 'none';
+    if (dom.bgGradientSettings) dom.bgGradientSettings.style.display = (type === 'gradient') ? 'flex' : 'none';
+    if (dom.bgPopdotsSettings) dom.bgPopdotsSettings.style.display = (type === 'popdots') ? 'flex' : 'none';
+    if (dom.bgFilmSettings) dom.bgFilmSettings.style.display = (type === 'film') ? 'flex' : 'none';
+    if (dom.bgImageSettings) dom.bgImageSettings.style.display = (type === 'image') ? 'flex' : 'none';
   }
 
   function syncBackgroundControls() {
@@ -3227,7 +3227,7 @@
       const decType = (bg.decoration && bg.decoration.type) ? bg.decoration.type : 'none';
       dom.selectBgDecorationType.value = decType;
       if (dom.bgDecorationControls) {
-        dom.bgDecorationControls.style.display = (decType !== 'none') ? 'block' : 'none';
+        dom.bgDecorationControls.style.display = (decType !== 'none') ? 'flex' : 'none';
       }
       if (dom.inputBgDecColor && bg.decoration) {
         dom.inputBgDecColor.value = bg.decoration.color || '#ffffff';
@@ -3591,7 +3591,7 @@
         ensureBackgroundState();
         state.background.decoration.type = e.target.value;
         if (dom.bgDecorationControls) {
-          dom.bgDecorationControls.style.display = (e.target.value !== 'none') ? 'block' : 'none';
+          dom.bgDecorationControls.style.display = (e.target.value !== 'none') ? 'flex' : 'none';
         }
         recordHistory();
         renderCanvas();
@@ -3652,7 +3652,7 @@
         dom.bgTypeGradient.classList.add('active');
         dom.bgTypeColor.classList.remove('active');
         dom.bgTypeImage.classList.remove('active');
-        dom.bgGradientSettings.style.display = 'block';
+        dom.bgGradientSettings.style.display = 'flex';
         dom.bgColorSettings.style.display = 'none';
         dom.bgImageSettings.style.display = 'none';
         recordHistory();
@@ -3740,9 +3740,9 @@
     // Text Preset Cards Click & Drag-and-Drop
     if (dom.btnAddCustomText) {
       dom.btnAddCustomText.setAttribute('draggable', 'true');
-      dom.btnAddCustomText.addEventListener('click', () => addTextLayer('main-title'));
+      dom.btnAddCustomText.addEventListener('click', () => addTextLayer('normal'));
       dom.btnAddCustomText.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', 'zzz-preset-text:main-title');
+        e.dataTransfer.setData('text/plain', 'zzz-preset-text:normal');
         e.dataTransfer.effectAllowed = 'copy';
       });
     }

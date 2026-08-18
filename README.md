@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-v1.0.0-6366f1?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-v1.0.1-6366f1?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/License-Apache%202.0-10b981?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Stickers-Official%20HD%20Emojis-f43f5e?style=flat-square" alt="Stickers">
   <img src="https://img.shields.io/badge/Tech-Vanilla%20JS%20%7C%20Canvas-38bdf8?style=flat-square" alt="Tech">
@@ -97,21 +97,28 @@ python -m http.server 8080
 zzz-poster-studio/
 ├── start.py                     # Python 本地轻量服务器与一键启动脚本
 ├── index.html                   # 创作中枢导航门户
-├── poster_studio/               # 【核心系统】海报与拼贴工坊
+├── CHANGELOG.md                 # 详细版本更新日志
+├── poster_studio/               # 海报与拼贴工坊
 │   ├── index.html               # 编辑器主界面
-│   ├── css/editor.css           # 街头美漫设计系统
+│   ├── css/editor.css           # 海报拼贴编辑器
 │   ├── js/
 │   │   ├── editor.js            # 画布渲染引擎与图层交互
 │   │   ├── emoji_data.js        # 贴纸素材数据索引
 │   │   └── templates.js         # 精选海报模板预设
 │   └── sw.js                    # PWA 离线缓存支持
 │
-├── gallery/                     # 【子系统】官方表情贴画图鉴
+├── gallery/                     # 官方表情贴画图鉴
 │   ├── index.html               # 全量官方表情贴画分类瀑布流
 │   └── scripts/                 # 素材同步与图鉴生成脚本
 │
 └── assets/                      # 静态资源池与官方高清透明底贴图
 ```
+
+---
+
+## 📝 更新日志
+
+各版本的详细特性、优化与修复记录请参阅 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
