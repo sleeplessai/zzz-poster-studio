@@ -77,6 +77,7 @@ class ZZZEmojiIncrementalSyncer:
                     
                     raw_hd_url = re.sub(r'/revision/latest/scale-to-width-down/\d+.*', '/revision/latest', img_url)
                     raw_hd_url = re.sub(r'/revision/latest/cb/\d+.*', '/revision/latest', raw_hd_url)
+                    raw_hd_url = re.sub(r'/revision/latest\?.*', '/revision/latest', raw_hd_url)
                     
                     clean_title = title.replace("File:", "").replace("_", " ").strip()
                     safe_filename = re.sub(r'[\/:*?"<>|]', '_', clean_title)
@@ -102,14 +103,17 @@ class ZZZEmojiIncrementalSyncer:
             try:
                 res = subprocess.run(
                     ['curl.exe', '-s', '-L', '--retry', '2', '--retry-delay', '1',
-                     '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                     '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                     '-H', 'Referer: https://zenless-zone-zero.fandom.com/wiki/Stickers',
                      '-o', save_path, item['url']],
                     timeout=25
                 )
-                if res.returncode == 0 and os.path.exists(save_path) and os.path.getsize(save_path) > 0:
-                    return True, item['filename']
+                if res.returncode == 0 and os.path.exists(save_path) and os.path.getsize(save_path) > 10000:
+                    with open(save_path, 'rb') as f:
+                        if not f.read(10).startswith(b'<!DOCTYPE'):
+                            return True, item['filename']
             except Exception:
-                time.sleep(1 * (attempt + 1))
+                time.sleep(1.5 * (attempt + 1))
         return False, item['filename']
 
     def sync(self):
@@ -167,6 +171,28 @@ class ZZZEmojiIncrementalSyncer:
                         print(f"    x [{idx}/{len(new_items)}] 线程异常: {err}", flush=True)
 
             print(f"\n--> 增量下载完成！成功新增入库 {success_count} 张。", flush=True)
+            if success_count > 0:
+                try:
+                    index_data = []
+                    if os.path.exists(self.index_json_path):
+                        with open(self.index_json_path, 'r', encoding='utf-8') as f:
+                            index_data = json.load(f)
+                    exist_fns = {x.get('filename', '').lower() for x in index_data}
+                    for itm in new_items:
+                        if itm['filename'].lower() not in exist_fns:
+                            index_data.append({
+                                'title': itm['title'],
+                                'filename': itm['filename'],
+                                'url': itm['url'],
+                                'width': itm.get('width'),
+                                'height': itm.get('height')
+                            })
+                    with open(self.index_json_path, 'w', encoding='utf-8') as f:
+                        json.dump(index_data, f, ensure_ascii=False, indent=2)
+                    print(f"--> [索引同步] 已自动更新 {self.index_json_path} (共 {len(index_data)} 项)", flush=True)
+                except Exception as e:
+                    print(f"[警告] 更新 emoji_index.json 失败: {e}", flush=True)
+
             print("--> 正在自动刷新重构画廊...", flush=True)
             build_gallery()
 

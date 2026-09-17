@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-v1.0.1-6366f1?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-v1.0.2-6366f1?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/License-Apache%202.0-10b981?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Stickers-Official%20HD%20Emojis-f43f5e?style=flat-square" alt="Stickers">
   <img src="https://img.shields.io/badge/Tech-Vanilla%20JS%20%7C%20Canvas-38bdf8?style=flat-square" alt="Tech">
@@ -19,6 +19,18 @@
 **ZZZ Poster Studio** 是一款面向《绝区零》(Zenless Zone Zero) 玩家与设计爱好者的轻量级排版与拼贴创作小工具。
 
 应用内置了官方全套高清透明底贴画素材，并参考《绝区零》独特的美漫波普、街头机能与复古胶片美术风格，让你可以自由拼贴、设计并导出属于自己的游戏海报、黑板报简报、手帐贴画与视觉卡片。
+
+---
+
+## 📢 最近更新 (What's New)
+
+- 🎨 **Version 3.2 官方贴画同步收录 (v1.0.2)**
+  - 全量入库 3.2 版本全新角色「克拉蕾 (Claret)」与「洛克茜 (Roxy)」官方高清透明底表情贴图。
+  - 海报工坊离线数据源扩充至 **28 个官方分类、共 241 张贴画**，图鉴同步支持全新分类检索。
+- 🛠️ **素材同步引擎加固**
+  - 增强增量同步脚本（`gallery/scripts/sync_emojis.py`），优化原图 URL 净化与防风控校验，支持自动回写元数据索引。
+
+> 💡 完整版本历史与详细演进记录请查阅 [更新日志 (CHANGELOG.md)](CHANGELOG.md)。
 
 ---
 
